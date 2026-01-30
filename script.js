@@ -13,8 +13,8 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{
 
 const appData = {
   siccura: {
-    title: "Siccura Lite",
-    desc: "Security & tracking Android application (now removed from Play Store).",
+    title: "Reward Dragon",
+    desc: "Reward Dragon is a Gamification powered Employee Engagement &amp; Wellbeing SAAS Mobile Platform that makes the achievement of Business &amp; Wellbeing Goals an exciting experience and enables Everyday Employee Engagement. Reward Dragon can enable organizations with returns up to 750X through, - Higher Business Outcomes - Improved Employee Experience &amp; Engagement By implementing a Gamification based Effort &amp; Reward Culture, that enables Everyday Employee Engagement.",
     tech: ["Kotlin", "Firebase", "REST API", "MVVM"],
     images: [
       "assets/siccura1.png",
