@@ -57,7 +57,18 @@ window.loginAdmin = function() {
   signInWithEmailAndPassword(auth, email, password)
     .then((userCredential) => {
       // ✅ success
-  
+   console.log("✅ Login success");
+
+    // 🔥 FORCE SWITCH UI
+    document.getElementById("adminAuth").classList.add("hidden");
+    document.getElementById("adminForm").classList.remove("hidden");
+
+    document.getElementById("adminOverlay").classList.add("show");
+
+    // 🔥 Load data
+    renderAdminList();
+    renderTagManager();
+
     })
     .catch((err) => {
       // ❌ error handling
@@ -90,15 +101,14 @@ window.loginAdmin = function() {
 
 // 🔄 SESSION CHECK
 onAuthStateChanged(auth, async (user) => {
-  const authBox = document.getElementById("adminAuth");
+   const authBox = document.getElementById("adminAuth");
   const formBox = document.getElementById("adminForm");
+
+  console.log("👤 Auth:", user);
 
   if (user) {
     authBox.classList.add("hidden");
     formBox.classList.remove("hidden");
-        await renderProjects();   // 🔥 ADD THIS
-       renderAdminList();
-    renderTagManager();
   } else {
     formBox.classList.add("hidden");
     authBox.classList.remove("hidden");
