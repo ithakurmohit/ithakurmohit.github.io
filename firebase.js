@@ -239,9 +239,26 @@ window.renderProjects = async function () {
       </div>
 
       <div class="store-btns">
-        ${hasPlay ? `<a href="${p.link}" target="_blank">Google Play</a>` : ""}
-        ${hasApple ? `<a href="${p.appleLink}" target="_blank">App Store</a>` : ""}
-      </div>
+  ${hasPlay ? `
+    <a href="${p.link}" target="_blank" class="store-badge store-badge-play">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3.18 23.5c.34.19.72.25 1.1.18L15.64 12 12 8.36 3.18 23.5z" fill="#EA4335"/>
+        <path d="M20.47 10.37L17.6 8.74 13.64 12l3.96 3.96 2.87-1.63a2 2 0 0 0 0-3.96z" fill="#FBBC04"/>
+        <path d="M4.28 1.32A2 2 0 0 0 3 3.14v17.72a2 2 0 0 0 1.28 1.82L15.64 12 4.28 1.32z" fill="#4285F4"/>
+        <path d="M4.28 1.32L15.64 12l3.96-3.96-10.22-5.8a2 2 0 0 0-5.1-.92z" fill="#34A853"/>
+      </svg>
+      <span><small>GET IT ON</small><b>Google Play</b></span>
+    </a>
+  ` : ""}
+  ${hasApple ? `
+    <a href="${p.appleLink}" target="_blank" class="store-badge store-badge-apple">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" fill="#fff"/>
+      </svg>
+      <span><small>Download on the</small><b>App Store</b></span>
+    </a>
+  ` : ""}
+</div>
     </div>
   </article>`;
 }).join("");
