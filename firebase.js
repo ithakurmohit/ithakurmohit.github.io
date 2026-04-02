@@ -202,9 +202,31 @@ window.renderProjects = async function () {
       ...doc.data()
     }));
 
-    grid.innerHTML = projects.map(p => `
-      <div>${p.name}</div>
-    `).join("");
+    grid.innerHTML = projects.map(p => {
+  const hasPlay = p.link;
+  const hasApple = p.appleLink;
+
+  return `
+  <article class="project">
+    <div class="project-img-wrap">
+      <img src="${p.img}" alt="${p.name}" onerror="this.src='assets/profile.jpg'">
+    </div>
+
+    <div class="p-body">
+      <h3>${p.name}</h3>
+      <p>${p.desc}</p>
+
+      <div class="tech-stack">
+        ${(p.tags || []).map(t => `<span>${t}</span>`).join("")}
+      </div>
+
+      <div class="store-btns">
+        ${hasPlay ? `<a href="${p.link}" target="_blank">Google Play</a>` : ""}
+        ${hasApple ? `<a href="${p.appleLink}" target="_blank">App Store</a>` : ""}
+      </div>
+    </div>
+  </article>`;
+}).join("");
 
   } catch (e) {
     console.error("❌ Render Error:", e);
