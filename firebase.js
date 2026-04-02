@@ -59,10 +59,10 @@ window.loginAdmin = function() {
 
 console.log("✅ Login success");
 
-  const authBox = document.getElementById("adminAuth");
+   const authBox = document.getElementById("adminAuth");
   const formBox = document.getElementById("adminForm");
 
-  // ✅ Inline styles hatao
+  // ✅ IMPORTANT: Inline styles hatao jo toggleAdminPanel ne set kiye hain
   authBox.style.display = "";
   formBox.style.display = "";
 

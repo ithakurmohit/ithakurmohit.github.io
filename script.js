@@ -182,14 +182,17 @@ function closeAdmin() {
   const overlay = document.getElementById("adminOverlay");
   const authBox = document.getElementById("adminAuth");
   const formBox = document.getElementById("adminForm");
-  
+
   overlay.classList.remove("show");
-  
-  // ✅ Inline styles reset
+
+  // ✅ Inline styles hatao
   authBox.style.display = "";
   formBox.style.display = "";
-  
-  if (window.logoutAdmin) { logoutAdmin(); }
+
+  if (window.logoutAdmin) {
+    logoutAdmin();
+  }
+
   document.getElementById("adminPass").value = "";
   document.getElementById("authError").classList.add("hidden");
 }

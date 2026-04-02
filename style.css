@@ -268,7 +268,7 @@ footer {
 .error { color: #dc2626; font-size: 13px; margin-top: 8px; }
 .success { color: #16a34a; font-size: 13px; margin-top: 8px; }
 .hidden {
-  display: none ;
+  display: none !important;   /* Agar ye hai to theek hai, warna daal do */
 }
 
 .fetch-row {
