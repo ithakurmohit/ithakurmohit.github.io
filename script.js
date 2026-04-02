@@ -23,9 +23,7 @@ const DEFAULT_PROJECTS = [
 //   localStorage.setItem("projects", JSON.stringify(projects));
 // }
 
-async function updateProjectInFirestore(id, data) {
-  await updateDoc(doc(db, "projects", id), data);
-}
+
 
 /* async function deleteProjectFromFirestore(id) {
   await deleteDoc(doc(db, "projects", id));
@@ -458,6 +456,13 @@ document.getElementById("closeAdminBtn")?.addEventListener("click", closeAdmin);
 
 document.addEventListener("DOMContentLoaded", () => {
 
+   const existing = localStorage.getItem("projects");
+
+  if (!existing) {
+    console.log("📦 Saving DEFAULT_PROJECTS to localStorage");
+    localStorage.setItem("projects", JSON.stringify(DEFAULT_PROJECTS));
+  }
+  
   // Admin button
   document.getElementById("adminBtn")?.addEventListener("click", toggleAdminPanel);
 

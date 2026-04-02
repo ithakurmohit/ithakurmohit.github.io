@@ -131,20 +131,33 @@ window.addEventListener("beforeunload", () => {
 
 
 async function migrateLocalToFirestore() {
-  const local = localStorage.getItem("projects");
-  if (!local) return;
+  try {
+    console.log("🚀 Starting migration...");
 
-  const projects = JSON.parse(local);
+    const local = localStorage.getItem("projects");
+    if (!local) {
+      console.log("❌ No local projects found");
+      return;
+    }
 
-  // check if firestore already has data
-  const snapshot = await getDocs(collection(db, "projects"));
-  if (!snapshot.empty) return; // already migrated
+    const projects = JSON.parse(local);
 
-  for (const p of projects) {
-    await addDoc(collection(db, "projects"), p);
+    const snapshot = await getDocs(collection(db, "projects"));
+
+    if (!snapshot.empty) {
+      console.log("⚠️ Firestore already has data, skipping migration");
+      return;
+    }
+
+    for (const p of projects) {
+      console.log("📤 Uploading:", p.name);
+      await addDoc(collection(db, "projects"), p);
+    }
+
+    console.log("✅ Migration completed");
+  } catch (e) {
+    console.error("❌ Migration error:", e);
   }
-
-  console.log("✅ Local data migrated to Firestore");
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -246,8 +259,35 @@ window.renderAdminList = async function () {
 
 
 window.getProjectsFromFirestore = async function () {
-  const snapshot = await getDocs(collection(db, "projects"));
-  return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  try {
+    console.log("📡 Fetching projects...");
+
+    const snapshot = await getDocs(collection(db, "projects"));
+
+    const data = snapshot.docs.map(d => ({
+      id: d.id,
+      ...d.data()
+    }));
+
+    console.log("✅ Projects:", data);
+
+    return data;
+  } catch (e) {
+    console.error("❌ Fetch Error:", e);
+    return [];
+  }
+};
+
+window.updateProjectInFirestore=async function (id, data) {
+  try {
+    console.log("✏️ Updating:", id, data);
+
+    await updateDoc(doc(db, "projects", id), data);
+
+    console.log("✅ Updated");
+  } catch (e) {
+    console.error("❌ Update Error:", e);
+  }
 }
 
 
@@ -280,6 +320,26 @@ container.querySelectorAll(".tag-chip").forEach(el => {
 };
 
 window.addProjectToFirestore = async function (project) {
-  await addDoc(collection(db, "projects"), project);
-}
+  try {
+    console.log("🔥 Adding project:", project);
 
+    const res = await addDoc(collection(db, "projects"), project);
+
+    console.log("✅ Added with ID:", res.id);
+  } catch (e) {
+    console.error("❌ Add Error:", e);
+    alert(e.message);
+  }
+};
+
+window.deleteProjectFromFirestore = async function (id) {
+  try {
+    console.log("🗑 Deleting:", id);
+
+    await deleteDoc(doc(db, "projects", id));
+
+    console.log("✅ Deleted");
+  } catch (e) {
+    console.error("❌ Delete Error:", e);
+  }
+};
