@@ -70,29 +70,68 @@
 
   <footer>
     <p>© 2025 Mohit Singh — Android &amp; Flutter Developer</p>
-    <button class="admin-btn" onclick="toggleAdminPanel()">⚙ Manage Projects</button>
-  </footer>
+<button id="adminBtn" class="admin-btn hidden" onclick="toggleAdminPanel()">⚙ Manage Projects</button>  </footer>
 
   <!-- Admin Panel -->
-  <div id="adminOverlay" class="modal hidden">
+  <div id="adminOverlay" class="modal">
     <div class="modal-content admin-panel">
       <span class="close" onclick="closeAdmin()">&times;</span>
       <div id="adminAuth">
-        <h3>Admin Login</h3>
-        <input type="password" id="adminPass" placeholder="Enter password" />
-        <button class="btn" onclick="checkAdmin()">Login</button>
-        <p id="authError" class="error hidden">Wrong password</p>
-      </div>
+  <h3>Admin Login</h3>
+
+  <!-- 👇 NEW email field -->
+  <input type="email" id="adminEmail" placeholder="Enter email" />
+
+  <!-- existing password -->
+  <input type="password" id="adminPass" placeholder="Enter password" />
+
+  <!-- 👇 function change -->
+  <button class="btn" onclick="loginAdmin()">Login</button>
+
+  <p id="authError" class="error hidden">Wrong credentials</p>
+</div>
       <div id="adminForm" class="hidden">
-        <h3>Add New Project</h3>
+        <h3 id="formTitle">Add New Project</h3>
+        <input type="hidden" id="f-edit-id" value="" />
         <div class="form-grid">
+          <div class="fetch-row">
+            <input type="text" id="f-link" placeholder="Play Store URL — paste to auto-fetch" />
+            <button class="btn btn-fetch" onclick="fetchAppDetails('play')">🔍 Play</button>
+          </div>
+          <div class="fetch-row">
+            <input type="text" id="f-link-apple" placeholder="App Store URL — paste to auto-fetch" />
+            <button class="btn btn-fetch btn-apple" onclick="fetchAppDetails('apple')">🍎 Apple</button>
+          </div>
+          <div id="fetchStatus" class="hidden fetch-status"></div>
           <input type="text" id="f-name" placeholder="Project Name *" />
-          <input type="text" id="f-img" placeholder="Image path (e.g. assets/app.png) *" />
+          <div class="img-row">
+            <input type="text" id="f-img" placeholder="Image URL or assets/app.png *" />
+            <label class="upload-btn" title="Upload image">
+              📁
+              <input type="file" id="f-img-upload" accept="image/*" style="display:none" onchange="handleImgUpload(event)" />
+            </label>
+            <img id="f-img-preview" src="" alt="" class="img-preview hidden" />
+          </div>
           <textarea id="f-desc" placeholder="Description *" rows="3"></textarea>
           <input type="text" id="f-tags" placeholder="Tech tags (comma separated) e.g. Kotlin, Firebase" />
-          <input type="text" id="f-link" placeholder="Play Store URL" />
+          <div>
+  <h4>Manage Tags</h4>
+
+  <div id="tagList" class="tag-list"></div>
+
+  <div class="tag-add-row">
+    <input type="text" id="newTagInput" placeholder="Add new tag" />
+    <button onclick="addNewTag()">➕ Add</button>
+  </div>
+</div>
+          <div class="store-check-row">
+            <label><input type="checkbox" id="f-has-play" checked /> Available on Play Store</label>
+            <label><input type="checkbox" id="f-has-apple" /> Available on App Store</label>
+          </div>
+          <input type="text" id="f-link-apple-store" placeholder="App Store URL (if available)" />
         </div>
-        <button class="btn" onclick="addProject()">➕ Add Project</button>
+        <button class="btn" id="submitBtn" onclick="saveProject()">➕ Add Project</button>
+        <button class="btn btn-cancel hidden" id="cancelEditBtn" onclick="cancelEdit()">✖ Cancel Edit</button>
         <p id="formMsg" class="success hidden">Project added!</p>
         <hr>
         <h3>Existing Projects</h3>
@@ -102,5 +141,6 @@
   </div>
 
   <script src="script.js"></script>
+  <script type="module" src="firebase.js"></script>
 </body>
 </html>
