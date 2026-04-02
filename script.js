@@ -159,9 +159,17 @@ window.toggleAdminPanel = function () {
 
   document.getElementById("adminOverlay").classList.add("show");
 
-    // 🔥 FORCE LOGIN UI SHOW
-  document.getElementById("adminAuth").classList.remove("hidden");
-  document.getElementById("adminForm").classList.add("hidden");
+  const user = window.firebaseAuthCurrentUser || null;
+
+  if (user) {
+    // ✅ already logged in → show admin panel
+    document.getElementById("adminAuth").classList.add("hidden");
+    document.getElementById("adminForm").classList.remove("hidden");
+  } else {
+    // ❌ not logged in → show login
+    document.getElementById("adminAuth").classList.remove("hidden");
+    document.getElementById("adminForm").classList.add("hidden");
+  }
 };
 
 function closeAdmin() {
