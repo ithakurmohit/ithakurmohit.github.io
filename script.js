@@ -161,7 +161,7 @@ function renderProjects() {
 // ── ADMIN PANEL ──
 
 function toggleAdminPanel() {
-  if (window.location.hash !== "#admin123") {
+  if (window.location.hash !== "#admin") {
     alert("Unauthorized access ❌");
     return;
   }
@@ -395,7 +395,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderProjects();
 
   // 🔐 Admin access via URL hash
-  if (window.location.hash === "#admin123") {
+  if (window.location.hash === "#admin") {
     document.getElementById("adminBtn").classList.remove("hidden");
   }
 
