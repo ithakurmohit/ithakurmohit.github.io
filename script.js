@@ -429,3 +429,19 @@ async function addProject() {
 } */
 
 
+document.getElementById("adminBtn")?.addEventListener("click", () => {
+  toggleAdminPanel();
+});
+
+document.getElementById("adminProjectList")?.addEventListener("click", (e) => {
+  const editBtn = e.target.closest(".edit-btn");
+  const deleteBtn = e.target.closest(".delete-btn");
+
+  if (editBtn) {
+    editProject(editBtn.dataset.id);
+  }
+
+  if (deleteBtn) {
+    deleteProject(deleteBtn.dataset.id);
+  }
+});
