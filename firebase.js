@@ -56,18 +56,19 @@ window.loginAdmin = function() {
 
   signInWithEmailAndPassword(auth, email, password)
     .then((userCredential) => {
-      // ✅ success
-   console.log("✅ Login success");
 
-    // 🔥 FORCE SWITCH UI
-    document.getElementById("adminAuth").classList.add("hidden");
-    document.getElementById("adminForm").classList.remove("hidden");
+  console.log("✅ Login success");
 
-    document.getElementById("adminOverlay").classList.add("show");
+  // ✅ Remove any inline styles that might block visibility
+  document.getElementById("adminAuth").style.display = "";
+  document.getElementById("adminForm").style.display = "";
 
-    // 🔥 Load data
-    renderAdminList();
-    renderTagManager();
+  document.getElementById("adminAuth").classList.add("hidden");
+  document.getElementById("adminForm").classList.remove("hidden");
+  document.getElementById("adminOverlay").classList.add("show");
+
+  renderAdminList();
+  renderTagManager();
 
     })
     .catch((err) => {
@@ -101,9 +102,9 @@ window.loginAdmin = function() {
 
 // 🔄 SESSION CHECK
 onAuthStateChanged(auth, async (user) => {
-    window.firebaseAuthCurrentUser = user; // 🔥 ADD THIS
+ window.firebaseAuthCurrentUser = user;
 
-   const authBox = document.getElementById("adminAuth");
+  const authBox = document.getElementById("adminAuth");
   const formBox = document.getElementById("adminForm");
 
   console.log("👤 Auth:", user);
@@ -111,6 +112,11 @@ onAuthStateChanged(auth, async (user) => {
   if (user) {
     authBox.classList.add("hidden");
     formBox.classList.remove("hidden");
+    formBox.style.display = "block"; // 🔥 ADD THIS
+    // 🔥 ADD THIS
+    await renderAdminList();
+    await renderTagManager();
+
   } else {
     formBox.classList.add("hidden");
     authBox.classList.remove("hidden");

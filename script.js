@@ -14,7 +14,8 @@
   await deleteDoc(doc(db, "projects", id));
 } */
 
-  async function deleteProject(id) {
+ async function deleteProject(id) {
+  if (!confirm("Are you sure you want to delete this project?")) return;
   await deleteProjectFromFirestore(id);
   await renderProjects();
   await renderAdminList();
@@ -157,20 +158,19 @@ window.toggleAdminPanel = function () {
     return;
   }
 
-  document.getElementById("adminOverlay").classList.add("show");
-  document.getElementById("adminAuth").style.display = "block";
-document.getElementById("adminForm").style.display = "none";
-
+  const overlay = document.getElementById("adminOverlay");
+  const authBox = document.getElementById("adminAuth");
+  const formBox = document.getElementById("adminForm");
   const user = window.firebaseAuthCurrentUser || null;
 
+  overlay.classList.add("show");
+
   if (user) {
-    // ✅ already logged in → show admin panel
-    document.getElementById("adminAuth").classList.add("hidden");
-    document.getElementById("adminForm").classList.remove("hidden");
+    authBox.classList.add("hidden");
+    formBox.classList.remove("hidden");
   } else {
-    // ❌ not logged in → show login
-    document.getElementById("adminAuth").classList.remove("hidden");
-    document.getElementById("adminForm").classList.add("hidden");
+    authBox.classList.remove("hidden");
+    formBox.classList.add("hidden");
   }
 };
 
@@ -204,7 +204,8 @@ function closeAdmin() {
 
   
 async function editProject(id) {
-   const p = (await getProjectsFromFirestore()).find(item => item.id === id);
+  const projects = await getProjectsFromFirestore();
+  const p = projects.find(item => item.id === id);
   if (!p) return;
 
   document.getElementById("f-edit-id").value = id;
@@ -222,9 +223,8 @@ async function editProject(id) {
   document.getElementById("submitBtn").textContent = "💾 Save Changes";
   document.getElementById("cancelEditBtn").classList.remove("hidden");
 
-  // Scroll to form top
   document.getElementById("formTitle").scrollIntoView({ behavior: "smooth" });
- await renderTagManager(p.tags || []);   // 👈 selected tags ke sath
+  await renderTagManager(p.tags || []);
 }
 
 function cancelEdit() {
@@ -238,6 +238,40 @@ function cancelEdit() {
   setImgPreview("");
   document.getElementById("fetchStatus").classList.add("hidden");
   renderTagManager();   // 👈 reset view
+}
+
+async function updateProject(id) {
+  const name = document.getElementById("f-name").value.trim();
+  const img = document.getElementById("f-img").value.trim();
+  const desc = document.getElementById("f-desc").value.trim();
+  const tags = document.getElementById("f-tags").value.trim();
+  const hasPlay = document.getElementById("f-has-play").checked;
+  const hasApple = document.getElementById("f-has-apple").checked;
+  const playLink = hasPlay ? document.getElementById("f-link").value.trim() : "";
+  const appleLink = hasApple ? document.getElementById("f-link-apple-store").value.trim() : "";
+
+  if (!name || !img || !desc) {
+    alert("Name, Image aur Description required hai.");
+    return;
+  }
+
+  await updateProjectInFirestore(id, {
+    name,
+    img,
+    desc,
+    tags: tags ? tags.split(",").map(t => t.trim()).filter(Boolean) : [],
+    link: playLink,
+    appleLink
+  });
+
+  await renderProjects();
+  await renderAdminList();
+  cancelEdit();
+
+  const msg = document.getElementById("formMsg");
+  msg.textContent = "Project updated!";
+  msg.classList.remove("hidden");
+  setTimeout(() => msg.classList.add("hidden"), 2500);
 }
 
 function saveProject() {
@@ -449,7 +483,7 @@ document.getElementById("playFetchBtn")?.addEventListener("click", () => {
   fetchAppDetails("play");
 });
 
-document.getElementById("saveProjectBtn")?.addEventListener("click", saveProject);
+document.getElementById("submitBtn")?.addEventListener("click", saveProject);
 
 document.getElementById("closeAdminBtn")?.addEventListener("click", closeAdmin);
 
