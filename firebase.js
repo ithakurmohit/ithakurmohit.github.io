@@ -1,6 +1,6 @@
 // firebase.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } 
+import { setPersistence, browserSessionPersistence, getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut} 
 from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -14,6 +14,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+setPersistence(auth, browserSessionPersistence);
 
 // 🔐 LOGIN
 window.loginAdmin = function() {
@@ -74,7 +75,7 @@ window.loginAdmin = function() {
 
 // 🔄 SESSION CHECK
 onAuthStateChanged(auth, (user) => {
-  if (user) {
+  if (!user) {
     document.getElementById("adminAuth").classList.add("hidden");
     document.getElementById("adminForm").classList.remove("hidden");
   }
@@ -88,13 +89,19 @@ window.logoutAdmin = function() {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
-  const passInput = document.getElementById("adminPass");
+  ["adminEmail", "adminPass"].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
 
-  if (passInput) {
-    passInput.addEventListener("keydown", (e) => {
+    el.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         loginAdmin();
       }
     });
-  }
+  });
+});
+
+// 🔐 LOGOUT on page change (strict mode)
+window.addEventListener("beforeunload", () => {
+  signOut(auth);
 });
