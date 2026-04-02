@@ -168,14 +168,14 @@ function saveAllTags(tags) {
  */
 // ── ADMIN PANEL ──
 
-function toggleAdminPanel() {
+window.toggleAdminPanel = function () {
   if (window.location.hash !== "#admin") {
     alert("Unauthorized access ❌");
     return;
   }
 
   document.getElementById("adminOverlay").classList.add("show");
-}
+};
 
 function closeAdmin() {
   document.getElementById("adminOverlay").classList.remove("show");
@@ -246,7 +246,7 @@ function cancelEdit() {
 function saveProject() {
   const editId = document.getElementById("f-edit-id").value;
   if (editId) {
-    updateProject(Number(editId));
+    updateProject(editId);
   } else {
     addProject();
   }
@@ -428,23 +428,4 @@ async function addProject() {
   setTimeout(() => msg.classList.add("hidden"), 2500);
 } */
 
-document.addEventListener("DOMContentLoaded", () => {
-  renderProjects();
 
-  // 🔐 Admin access via URL hash
-  if (window.location.hash === "#admin") {
-    document.getElementById("adminBtn").classList.remove("hidden");
-  }
-
-  document.getElementById("f-img").addEventListener("input", function() {
-    setImgPreview(this.value.trim());
-  });
-
-  document.getElementById("adminOverlay").addEventListener("click", function(e) {
-    if (e.target === this) closeAdmin();
-  });
-
-  document.getElementById("adminPass").addEventListener("keydown", function(e) {
-    if (e.key === "Enter") loginAdmin();
-  });
-});
