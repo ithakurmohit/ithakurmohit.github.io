@@ -38,6 +38,13 @@ window.loginAdmin = function() {
   btnText.textContent = "Please wait...";
   btnLoader.classList.remove("hidden");
 
+  const captcha = grecaptcha.getResponse();
+
+  if (!captcha) {
+    alert("Please verify captcha ❌");
+    return;
+  }
+
   signInWithEmailAndPassword(auth, email, password)
     .then((userCredential) => {
       // ✅ success
