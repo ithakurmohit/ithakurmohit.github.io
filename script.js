@@ -445,3 +445,38 @@ document.getElementById("adminProjectList")?.addEventListener("click", (e) => {
     deleteProject(deleteBtn.dataset.id);
   }
 });
+
+document.getElementById("addTagBtn")?.addEventListener("click", addNewTag);
+
+document.getElementById("playFetchBtn")?.addEventListener("click", () => {
+  fetchAppDetails("play");
+});
+
+document.getElementById("saveProjectBtn")?.addEventListener("click", saveProject);
+
+document.getElementById("closeAdminBtn")?.addEventListener("click", closeAdmin);
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  // Admin button
+  document.getElementById("adminBtn")?.addEventListener("click", toggleAdminPanel);
+
+  // Login
+  document.getElementById("loginBtn")?.addEventListener("click", loginAdmin);
+
+  // Apple fetch
+  document.getElementById("appleFetchBtn")?.addEventListener("click", () => {
+    fetchAppDetails("apple");
+  });
+
+  // Cancel edit
+  document.getElementById("cancelEditBtn")?.addEventListener("click", cancelEdit);
+
+});
+
+document.getElementById("tagList")?.addEventListener("click", (e) => {
+  const tag = e.target.closest(".tag-chip");
+  if (tag) {
+    toggleTag(tag.dataset.tag);
+  }
+});

@@ -72,12 +72,12 @@
 
   <footer>
     <p>© 2025 Mohit Singh — Android &amp; Flutter Developer</p>
-<button id="adminBtn" class="admin-btn hidden" onclick="toggleAdminPanel()">⚙ Manage Projects</button>  </footer>
+<button id="adminBtn" class="admin-btn hidden">⚙ Manage Projects</button>  </footer>
 
   <!-- Admin Panel -->
   <div id="adminOverlay" class="modal">
     <div class="modal-content admin-panel">
-      <span class="close" onclick="closeAdmin()">&times;</span>
+      <span class="close" id="closeAdminBtn">&times;</span>
       <div id="adminAuth">
   <h3>Admin Login</h3>
 
@@ -89,7 +89,7 @@
 
   <div class="g-recaptcha" data-sitekey="6LcLB6MsAAAAACCI-E98G4OAeVahlOW-fv33IZEk"></div>
     <!-- 👇 Button + Loader -->
-  <button class="btn" id="loginBtn" onclick="loginAdmin()">
+  <button class="btn" id="loginBtn" >
     <span id="btnText">Login</span>
     <span id="btnLoader" class="hidden">⏳</span>
   </button>
@@ -103,7 +103,7 @@
         <div class="form-grid">
           <div class="fetch-row">
             <input type="text" id="f-link" placeholder="Play Store URL — paste to auto-fetch" />
-            <button class="btn btn-fetch" onclick="fetchAppDetails('play')">🔍 Play</button>
+            <button class="btn btn-fetch" id="playFetchBtn">🔍 Play</button>
           </div>
           <div class="fetch-row">
             <input type="text" id="f-link-apple" placeholder="App Store URL — paste to auto-fetch" />
@@ -128,7 +128,7 @@
 
   <div class="tag-add-row">
     <input type="text" id="newTagInput" placeholder="Add new tag" />
-    <button onclick="addNewTag()">➕ Add</button>
+    <button id="addTagBtn">➕ Add</button>
   </div>
 </div>
           <div class="store-check-row">
@@ -137,7 +137,7 @@
           </div>
           <input type="text" id="f-link-apple-store" placeholder="App Store URL (if available)" />
         </div>
-        <button class="btn" id="submitBtn" onclick="saveProject()">➕ Add Project</button>
+        <button class="btn" id="submitBtn" id="saveProjectBtn">➕ Add Project</button>
         <button class="btn btn-cancel hidden" id="cancelEditBtn" onclick="cancelEdit()">✖ Cancel Edit</button>
         <p id="formMsg" class="success hidden">Project added!</p>
         <hr>

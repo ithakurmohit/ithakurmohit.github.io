@@ -193,8 +193,8 @@ window.renderAdminList = async function () {
       <span>${p.name}</span>
 
       <div style="margin-left:auto;display:flex;gap:6px;">
-        <button onclick="editProject('${p.id}')">✏️ Edit</button>
-        <button onclick="deleteProject('${p.id}')">🗑 Remove</button>
+        <button class="edit-btn" data-id="${p.id}">✏️ Edit</button>
+        <button class="delete-btn" data-id="${p.id}">🗑 Remove</button>
       </div>
     </div>
   `).join("");
@@ -267,15 +267,19 @@ window.getProjectsFromFirestore = async function () {
   const allTags = Array.from(tagSet);
 
   container.innerHTML = allTags.map(tag => `
-    <span 
-      class="tag-chip ${selectedTags.includes(tag) ? 'active' : ''}"
-      onclick="toggleTag('${tag}')"
-    >
-      ${tag}
-    </span>
-  `).join("");
+  <span class="tag-chip" data-tag="${tag}">
+    ${tag}
+  </span>
+`).join("");
+
+container.querySelectorAll(".tag-chip").forEach(el => {
+  el.addEventListener("click", () => {
+    toggleTag(el.dataset.tag);
+  });
+});
 };
 
 window.addProjectToFirestore = async function (project) {
   await addDoc(collection(db, "projects"), project);
 }
+
