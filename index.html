@@ -107,7 +107,7 @@
           </div>
           <div class="fetch-row">
             <input type="text" id="f-link-apple" placeholder="App Store URL — paste to auto-fetch" />
-            <button class="btn btn-fetch btn-apple" onclick="fetchAppDetails('apple')">🍎 Apple</button>
+            <button class="btn btn-fetch btn-apple" id="appleFetchBtn">🍎 Apple</button>
           </div>
           <div id="fetchStatus" class="hidden fetch-status"></div>
           <input type="text" id="f-name" placeholder="Project Name *" />
@@ -138,7 +138,7 @@
           <input type="text" id="f-link-apple-store" placeholder="App Store URL (if available)" />
         </div>
         <button class="btn" id="submitBtn" id="saveProjectBtn">➕ Add Project</button>
-        <button class="btn btn-cancel hidden" id="cancelEditBtn" onclick="cancelEdit()">✖ Cancel Edit</button>
+        <button class="btn btn-cancel hidden" id="cancelEditBtn">✖ Cancel Edit</button>
         <p id="formMsg" class="success hidden">Project added!</p>
         <hr>
         <h3>Existing Projects</h3>
@@ -147,7 +147,7 @@
     </div>
   </div>
 
-  <script type="module" src="script.js"></script>
   <script type="module" src="firebase.js"></script>
+   <script type="module" src="script.js"></script>
 </body>
 </html>

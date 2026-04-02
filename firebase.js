@@ -30,14 +30,14 @@ window.loginAdmin = function() {
   const btnLoader = document.getElementById("btnLoader");
   const errorEl = document.getElementById("authError");
 
-
+/* 
    const captcha = window.grecaptcha ? grecaptcha.getResponse() : "";
 
 
   if (!captcha) {
     alert("Please verify captcha ❌");
     return;
-  }
+  } */
 
   // 🔁 reset state
   errorEl.classList.add("hidden");
@@ -183,48 +183,32 @@ window.renderAdminList = async function () {
   `).join("");
 };
 
-  window.renderProjects = async function () {
-  const grid = document.getElementById("projectGrid");
-  if (!grid) return;
+window.renderProjects = async function () {
+  try {
+    console.log("📡 Rendering projects...");
 
-  const snapshot = await getDocs(collection(db, "projects"));
-  const projects = snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  }));
+    const grid = document.getElementById("projectGrid");
+    if (!grid) {
+      console.error("❌ projectGrid not found");
+      return;
+    }
 
-  grid.innerHTML = projects.map(p => {
-    const hasPlay = p.link;
-    const hasApple = p.appleLink;
+    const snapshot = await getDocs(collection(db, "projects"));
 
-    return `
-    <article class="project">
-      <div class="project-img-wrap">
-        <img src="${p.img}" alt="${p.name}" onerror="this.src='assets/profile.jpg'">
-      </div>
+    console.log("📦 Docs:", snapshot.docs.length);
 
-      <div class="p-body">
-        <h3>${p.name}</h3>
-        <p>${p.desc}</p>
+    const projects = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
 
-        <div class="tech-stack">
-          ${(p.tags || []).map(t => `<span>${t}</span>`).join("")}
-        </div>
+    grid.innerHTML = projects.map(p => `
+      <div>${p.name}</div>
+    `).join("");
 
-        <div class="store-btns">
-          ${hasPlay ? `
-            <a href="${p.link}" target="_blank" class="store-badge store-badge-play">
-              <span>Google Play</span>
-            </a>` : ""}
-
-          ${hasApple ? `
-            <a href="${p.appleLink}" target="_blank" class="store-badge store-badge-apple">
-              <span>App Store</span>
-            </a>` : ""}
-        </div>
-      </div>
-    </article>`;
-  }).join("");
+  } catch (e) {
+    console.error("❌ Render Error:", e);
+  }
 };
 
 
