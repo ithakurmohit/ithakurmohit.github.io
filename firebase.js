@@ -17,16 +17,58 @@ const auth = getAuth(app);
 
 // 🔐 LOGIN
 window.loginAdmin = function() {
-  const email = document.getElementById("adminEmail").value;
-  const password = document.getElementById("adminPass").value;
+  const email = document.getElementById("adminEmail").value.trim();
+  const password = document.getElementById("adminPass").value.trim();
+
+  const btnText = document.getElementById("btnText");
+  const btnLoader = document.getElementById("btnLoader");
+  const errorEl = document.getElementById("authError");
+
+  // 🔁 reset state
+  errorEl.classList.add("hidden");
+
+  if (!email || !password) {
+    errorEl.textContent = "Email aur password required hai";
+    errorEl.classList.remove("hidden");
+    return;
+  }
+
+  // 🔄 show loader
+  btnText.textContent = "Please wait...";
+  btnLoader.classList.remove("hidden");
 
   signInWithEmailAndPassword(auth, email, password)
-    .then(() => {
+    .then((userCredential) => {
+      // ✅ success
       document.getElementById("adminAuth").classList.add("hidden");
       document.getElementById("adminForm").classList.remove("hidden");
     })
     .catch((err) => {
-      alert("Login failed ❌ " + err.message);
+      // ❌ error handling
+      let msg = "Login failed ❌";
+
+      switch (err.code) {
+        case "auth/invalid-email":
+          msg = "Invalid email format";
+          break;
+        case "auth/user-not-found":
+          msg = "User not found";
+          break;
+        case "auth/wrong-password":
+          msg = "Wrong password";
+          break;
+        case "auth/too-many-requests":
+          msg = "Too many attempts. Try later";
+          break;
+      }
+
+      errorEl.textContent = msg;
+      errorEl.classList.remove("hidden");
+    })
+    .finally(() => {
+      // 🔁 reset button
+      btnText.textContent = "Login";
+      btnLoader.classList.add("hidden");
     });
 };
 
@@ -44,3 +86,15 @@ window.logoutAdmin = function() {
     location.reload();
   });
 };
+
+document.addEventListener("DOMContentLoaded", () => {
+  const passInput = document.getElementById("adminPass");
+
+  if (passInput) {
+    passInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        loginAdmin();
+      }
+    });
+  }
+});

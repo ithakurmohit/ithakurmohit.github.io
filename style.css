@@ -456,6 +456,27 @@ footer {
   color: white;
 }
 
+#loginBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+#btnLoader {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error {
+  color: red;
+  margin-top: 8px;
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 600px) {
   .hero-inner { flex-direction: column; text-align: center; }

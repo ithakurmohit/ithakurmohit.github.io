@@ -85,10 +85,14 @@
   <!-- existing password -->
   <input type="password" id="adminPass" placeholder="Enter password" />
 
-  <!-- 👇 function change -->
-  <button class="btn" onclick="loginAdmin()">Login</button>
+    <!-- 👇 Button + Loader -->
+  <button class="btn" id="loginBtn" onclick="loginAdmin()">
+    <span id="btnText">Login</span>
+    <span id="btnLoader" class="hidden">⏳</span>
+  </button>
 
-  <p id="authError" class="error hidden">Wrong credentials</p>
+  <!-- 👇 Error Message -->
+  <p id="authError" class="error hidden"></p>
 </div>
       <div id="adminForm" class="hidden">
         <h3 id="formTitle">Add New Project</h3>
