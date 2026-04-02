@@ -158,6 +158,8 @@ window.toggleAdminPanel = function () {
   }
 
   document.getElementById("adminOverlay").classList.add("show");
+  document.getElementById("adminAuth").style.display = "block";
+document.getElementById("adminForm").style.display = "none";
 
   const user = window.firebaseAuthCurrentUser || null;
 
