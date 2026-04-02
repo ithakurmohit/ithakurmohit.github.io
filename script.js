@@ -158,6 +158,10 @@ window.toggleAdminPanel = function () {
   }
 
   document.getElementById("adminOverlay").classList.add("show");
+
+    // 🔥 FORCE LOGIN UI SHOW
+  document.getElementById("adminAuth").classList.remove("hidden");
+  document.getElementById("adminForm").classList.add("hidden");
 };
 
 function closeAdmin() {
