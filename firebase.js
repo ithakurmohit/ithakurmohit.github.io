@@ -25,6 +25,15 @@ window.loginAdmin = function() {
   const btnLoader = document.getElementById("btnLoader");
   const errorEl = document.getElementById("authError");
 
+
+   const captcha = window.grecaptcha ? grecaptcha.getResponse() : "";
+
+
+  if (!captcha) {
+    alert("Please verify captcha ❌");
+    return;
+  }
+
   // 🔁 reset state
   errorEl.classList.add("hidden");
 
@@ -38,12 +47,7 @@ window.loginAdmin = function() {
   btnText.textContent = "Please wait...";
   btnLoader.classList.remove("hidden");
 
-  const captcha = grecaptcha.getResponse();
-
-  if (!captcha) {
-    alert("Please verify captcha ❌");
-    return;
-  }
+ 
 
   signInWithEmailAndPassword(auth, email, password)
     .then((userCredential) => {
