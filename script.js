@@ -1,3 +1,7 @@
+import { 
+  getFirestore, collection, getDocs 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 const DEFAULT_PROJECTS = [
   { id: 1, name: "Hi-Tech Kisan", img: "assets/hitechkisan.webp", desc: "The app focuses on making farming-related purchases more accessible by offering a structured and transparent way to explore products related to agriculture, dairy, and livestock care.", tags: ["Flutter", "Dart", "REST API"], link: "https://play.google.com/store/apps/details?id=com.hitechkisan.app&hl=en_IN", appleLink: "" },
   { id: 2, name: "Dream Square", img: "assets/dream.png", desc: "Dream Square – Property Buy or Sale Made Simple.", tags: ["Flutter", "Dart", "REST API"], link: "https://play.google.com/store/apps/details?id=com.dream.square&hl=en_IN", appleLink: "" },
@@ -14,18 +18,39 @@ const DEFAULT_PROJECTS = [
 ];
 
 
-function getProjects() {
-  const saved = localStorage.getItem("projects");
-  return saved ? JSON.parse(saved) : DEFAULT_PROJECTS;
+// function getProjects() {
+//   const saved = localStorage.getItem("projects");
+//   return saved ? JSON.parse(saved) : DEFAULT_PROJECTS;
+// }
+
+// function saveProjects(projects) {
+//   localStorage.setItem("projects", JSON.stringify(projects));
+// }
+
+async function getProjectsFromFirestore() {
+  const snapshot = await getDocs(collection(db, "projects"));
+  return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
-function saveProjects(projects) {
-  localStorage.setItem("projects", JSON.stringify(projects));
+async function addProjectToFirestore(project) {
+  await addDoc(collection(db, "projects"), project);
 }
 
+async function updateProjectInFirestore(id, data) {
+  await updateDoc(doc(db, "projects", id), data);
+}
 
-function getAllTags() {
-  const projects = getProjects();
+/* async function deleteProjectFromFirestore(id) {
+  await deleteDoc(doc(db, "projects", id));
+} */
+
+  async function deleteProject(id) {
+  await deleteProjectFromFirestore(id);
+  await renderProjects();
+  await renderAdminList();
+}
+async function getAllTags() {
+  const projects = await getProjectsFromFirestore();
   const tagSet = new Set();
 
   projects.forEach(p => {
@@ -38,9 +63,35 @@ function getAllTags() {
   return Array.from(tagSet);
 }
 
-function renderTagManager(selectedTags = []) {
-  const allTags = getAllTags();
+/* async function renderTagManager(selectedTags = []) {
+  const allTags = await getAllTags();
   const container = document.getElementById("tagList");
+  if (!container) return;
+
+  container.innerHTML = allTags.map(tag => `
+    <span
+      class="tag-chip ${selectedTags.includes(tag) ? 'active' : ''}"
+      onclick="toggleTag('${tag}')"
+    >
+      ${tag}
+    </span>
+  `).join("");
+} */
+
+  window.renderTagManager = async function (selectedTags = []) {
+  const container = document.getElementById("tagList");
+  if (!container) return;
+
+  const snapshot = await getDocs(collection(db, "projects"));
+  const projects = snapshot.docs.map(doc => doc.data());
+
+  const tagSet = new Set();
+
+  projects.forEach(p => {
+    (p.tags || []).forEach(t => tagSet.add(t));
+  });
+
+  const allTags = Array.from(tagSet);
 
   container.innerHTML = allTags.map(tag => `
     <span 
@@ -50,11 +101,11 @@ function renderTagManager(selectedTags = []) {
       ${tag}
     </span>
   `).join("");
-}
+};
 
-function toggleTag(tag) {
-  let input = document.getElementById("f-tags");
-  let current = input.value ? input.value.split(",").map(t => t.trim()) : [];
+async function toggleTag(tag) {
+  const input = document.getElementById("f-tags");
+  let current = input.value ? input.value.split(",").map(t => t.trim()).filter(Boolean) : [];
 
   if (current.includes(tag)) {
     current = current.filter(t => t !== tag);
@@ -63,37 +114,31 @@ function toggleTag(tag) {
   }
 
   input.value = current.join(", ");
-  renderTagManager(current);
+  await renderTagManager(current);
 }
 
-function addNewTag() {
+async function addNewTag() {
   const input = document.getElementById("newTagInput");
   const newTag = input.value.trim();
-
   if (!newTag) return;
 
-  let tags = getAllTags();
+  let tags = await getAllTags();
 
   if (!tags.includes(newTag)) {
     tags.push(newTag);
     saveAllTags(tags);
   }
 
-  // 👉 current selected tags le lo
   const currentSelected = document.getElementById("f-tags").value
-    ? document.getElementById("f-tags").value.split(",").map(t => t.trim())
+    ? document.getElementById("f-tags").value.split(",").map(t => t.trim()).filter(Boolean)
     : [];
 
-  // 👉 new tag ko bhi select kar do (optional but best UX)
-  currentSelected.push(newTag);
+  if (!currentSelected.includes(newTag)) currentSelected.push(newTag);
 
-  // 👉 input update karo
   document.getElementById("f-tags").value = currentSelected.join(", ");
-
   input.value = "";
 
-  // 👉 selected tags ke sath render karo
-  renderTagManager(currentSelected);
+  await renderTagManager(currentSelected);
 }
 
 function removeTag(tag) {
@@ -117,9 +162,9 @@ function saveAllTags(tags) {
   localStorage.setItem("allTags", JSON.stringify(tags));
 }
 
-function renderProjects() {
+/* async function renderProjects() {
   const grid = document.getElementById("projectGrid");
-  const projects = getProjects();
+  const projects = await getProjectsFromFirestore();
   grid.innerHTML = projects.map(p => {
     const hasPlay = p.link;
     const hasApple = p.appleLink;
@@ -157,7 +202,7 @@ function renderProjects() {
     </article>`;
   }).join("");
 }
-
+ */
 // ── ADMIN PANEL ──
 
 function toggleAdminPanel() {
@@ -181,10 +226,34 @@ function closeAdmin() {
   document.getElementById("authError").classList.add("hidden");
 }
 
+window.renderAdminList = async function () {
+  const container = document.getElementById("adminProjectList");
+  if (!container) return;
 
+  const snapshot = await getDocs(collection(db, "projects"));
+  const projects = snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }));
 
-function renderAdminList() {
-  const projects = getProjects();
+  container.innerHTML = projects.map(p => `
+    <div class="admin-project-item">
+      <img src="${p.img}" 
+           onerror="this.src='assets/profile.jpg'" 
+           style="width:36px;height:36px;border-radius:8px;object-fit:cover;">
+
+      <span>${p.name}</span>
+
+      <div style="margin-left:auto;display:flex;gap:6px;">
+        <button onclick="editProject('${p.id}')">✏️ Edit</button>
+        <button onclick="deleteProject('${p.id}')">🗑 Remove</button>
+      </div>
+    </div>
+  `).join("");
+};
+
+/* async function renderAdminList() {
+  const projects = await getProjectsFromFirestore();
   document.getElementById("adminProjectList").innerHTML = projects.map(p => `
     <div class="admin-project-item">
       <img src="${p.img}" onerror="this.src='assets/profile.jpg'" style="width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0;">
@@ -195,10 +264,11 @@ function renderAdminList() {
       </div>
     </div>
   `).join("");
-}
+} */
 
-function editProject(id) {
-  const p = getProjects().find(p => p.id === id);
+  
+async function editProject(id) {
+   const p = (await getProjectsFromFirestore()).find(item => item.id === id);
   if (!p) return;
 
   document.getElementById("f-edit-id").value = id;
@@ -218,7 +288,7 @@ function editProject(id) {
 
   // Scroll to form top
   document.getElementById("formTitle").scrollIntoView({ behavior: "smooth" });
-  renderTagManager(p.tags);   // 👈 selected tags ke sath
+ await renderTagManager(p.tags || []);   // 👈 selected tags ke sath
 }
 
 function cancelEdit() {
@@ -243,7 +313,7 @@ function saveProject() {
   }
 }
 
-function updateProject(id) {
+/* function updateProject(id) {
   const name = document.getElementById("f-name").value.trim();
   const img  = document.getElementById("f-img").value.trim();
   const desc = document.getElementById("f-desc").value.trim();
@@ -267,12 +337,58 @@ function updateProject(id) {
   msg.textContent = "Project updated!";
   msg.classList.remove("hidden");
   setTimeout(() => { msg.classList.add("hidden"); msg.textContent = "Project added!"; }, 2500);
-}
-function deleteProject(id) {
+} */
+
+
+/* function deleteProject(id) {
   saveProjects(getProjects().filter(p => p.id !== id));
   renderProjects();
   renderAdminList();
-}
+} */
+
+  window.renderProjects = async function () {
+  const grid = document.getElementById("projectGrid");
+  if (!grid) return;
+
+  const snapshot = await getDocs(collection(db, "projects"));
+  const projects = snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }));
+
+  grid.innerHTML = projects.map(p => {
+    const hasPlay = p.link;
+    const hasApple = p.appleLink;
+
+    return `
+    <article class="project">
+      <div class="project-img-wrap">
+        <img src="${p.img}" alt="${p.name}" onerror="this.src='assets/profile.jpg'">
+      </div>
+
+      <div class="p-body">
+        <h3>${p.name}</h3>
+        <p>${p.desc}</p>
+
+        <div class="tech-stack">
+          ${(p.tags || []).map(t => `<span>${t}</span>`).join("")}
+        </div>
+
+        <div class="store-btns">
+          ${hasPlay ? `
+            <a href="${p.link}" target="_blank" class="store-badge store-badge-play">
+              <span>Google Play</span>
+            </a>` : ""}
+
+          ${hasApple ? `
+            <a href="${p.appleLink}" target="_blank" class="store-badge store-badge-apple">
+              <span>App Store</span>
+            </a>` : ""}
+        </div>
+      </div>
+    </article>`;
+  }).join("");
+};
 
 function setImgPreview(url) {
   const preview = document.getElementById("f-img-preview");
@@ -361,7 +477,36 @@ async function fetchAppDetails(type) {
   }
 }
 
-function addProject() {
+async function addProject() {
+  const name = document.getElementById("f-name").value.trim();
+  const img  = document.getElementById("f-img").value.trim();
+  const desc = document.getElementById("f-desc").value.trim();
+  const tags = document.getElementById("f-tags").value.trim();
+  const hasPlay  = document.getElementById("f-has-play").checked;
+  const hasApple = document.getElementById("f-has-apple").checked;
+  const playLink  = hasPlay ? document.getElementById("f-link").value.trim() : "";
+  const appleLink = hasApple ? document.getElementById("f-link-apple-store").value.trim() : "";
+
+  if (!name || !img || !desc) {
+    alert("Name, Image aur Description required hai.");
+    return;
+  }
+
+  await addProjectToFirestore({
+    name,
+    img,
+    desc,
+    tags: tags ? tags.split(",").map(t => t.trim()).filter(Boolean) : [],
+    link: playLink,
+    appleLink
+  });
+
+  await renderProjects();
+  await renderAdminList();
+  cancelEdit();
+}
+
+/* async function addProject() {
   const name = document.getElementById("f-name").value.trim();
   const img  = document.getElementById("f-img").value.trim();
   const desc = document.getElementById("f-desc").value.trim();
@@ -373,9 +518,10 @@ function addProject() {
 
   if (!name || !img || !desc) { alert("Name, Image aur Description required hai."); return; }
 
-  const projects = getProjects();
+  const projects = await getProjectsFromFirestore();
   projects.push({ id: Date.now(), name, img, desc, tags: tags ? tags.split(",").map(t => t.trim()) : [], link: playLink, appleLink });
   saveProjects(projects);
+  
   renderProjects();
   renderAdminList();
   cancelEdit();
@@ -383,7 +529,7 @@ function addProject() {
   const msg = document.getElementById("formMsg");
   msg.classList.remove("hidden");
   setTimeout(() => msg.classList.add("hidden"), 2500);
-}
+} */
 
 document.addEventListener("DOMContentLoaded", () => {
   renderProjects();
@@ -402,6 +548,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.getElementById("adminPass").addEventListener("keydown", function(e) {
-    if (e.key === "Enter") checkAdmin();
+    if (e.key === "Enter") loginAdmin();
   });
 });
