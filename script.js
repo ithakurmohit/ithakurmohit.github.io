@@ -1,18 +1,3 @@
-const DEFAULT_PROJECTS = [
-  { id: 1, name: "Hi-Tech Kisan", img: "assets/hitechkisan.webp", desc: "The app focuses on making farming-related purchases more accessible by offering a structured and transparent way to explore products related to agriculture, dairy, and livestock care.", tags: ["Flutter", "Dart", "REST API"], link: "https://play.google.com/store/apps/details?id=com.hitechkisan.app&hl=en_IN", appleLink: "" },
-  { id: 2, name: "Dream Square", img: "assets/dream.png", desc: "Dream Square – Property Buy or Sale Made Simple.", tags: ["Flutter", "Dart", "REST API"], link: "https://play.google.com/store/apps/details?id=com.dream.square&hl=en_IN", appleLink: "" },
-  { id: 3, name: "Starlyte Mobile", img: "assets/starlyte.png", desc: "Mobile client for Starlyte platform — UI & integration work.", tags: ["Flutter", "Dart", "REST API"], link: "https://play.google.com/store/apps/details?id=com.starlyte.mobile&hl=en_IN", appleLink: "" },
-  { id: 4, name: "Secuber", img: "assets/secuber.png", desc: "Business & productivity app — enhancements & bug fixes.", tags: ["Kotlin", "Java", "Firebase", "MVVM"], link: "https://play.google.com/store/apps/details?id=com.mad.SpaciMax", appleLink: "https://apps.apple.com/in/app/secuber/id1636624719" },
-  { id: 5, name: "Dev Tea", img: "assets/tea.png", desc: "Discover Premium Teas, Expert Brewing, and a Personalized Tea Experience.", tags: ["Java", "XML", "Webview"], link: "https://play.google.com/store/apps/details?id=com.comrade.devtea", appleLink: "" },
-  { id: 6, name: "Siccura Work", img: "assets/siccuraWork.png", desc: "A Secure, Zero-Knowledge Platform for Total Control of Business Data and Communications.", tags: ["Java", "Firebase", "AES Encryption"], link: "https://play.google.com/store/apps/details?id=yw.wemet.siccurapro", appleLink: "" },
-  { id: 7, name: "SUMS - Education Management", img: "assets/sums.png", desc: "Education / enterprise app. Implemented features and release updates.", tags: ["Kotlin", "Java", "Firebase", "MVVM"], link: "http://play.google.com/store/apps/details?id=com.sujaltech.sums&hl=en_IN", appleLink: "" },
-  { id: 8, name: "Siccura Lite", img: "assets/siccura.png", desc: "Security & tracking application — worked on core Android modules.", tags: ["Kotlin", "Java", "Firebase", "MVVM"], link: "https://play.google.com/store/apps/details?id=yw.wemet.siccuraLite&hl=en_IN", appleLink: "" },
-  { id: 9, name: "Siccura Office", img: "assets/siccuraoffice.png", desc: "Document viewer app — performance improvements and bug fixes.", tags: ["Kotlin", "Java", "Firebase", "MVVM"], link: "https://play.google.com/store/apps/details?id=yw.wemet.docviewer", appleLink: "" },
-  { id: 10, name: "Reward Dragon", img: "assets/reward.png", desc: "An employee engagement mobile platform powered by gamification.", tags: ["Kotlin", "Java", "XML"], link: "https://play.google.com/store/apps/details?id=com.rewarddragon.app", appleLink: "" },
-  { id: 11, name: "Useme - Social Saving App", img: "assets/useme.png", desc: "Wallet & recharge app — worked on payments (Paytm, Cashfree, Razorpay), AePS, and AAR libraries.", tags: ["Java", "Firebase", "Razorpay", "Cashfree", "AePS"], link: "https://play.google.com/store/apps/details?id=com.useme.wallet&hl=en_IN", appleLink: "" },
-  { id: 12, name: "Rajkamal Recharge", img: "assets/rajkamal.png", desc: "This app makes online recharges and bill payments.", tags: ["Java", "XML", "JSON", "Razorpay", "Cashfree"], link: "https://play.google.com/store/apps/details?id=com.app.rajkamal&hl=en_IN", appleLink: "" }
-];
-
 
 // function getProjects() {
 //   const saved = localStorage.getItem("projects");
@@ -458,11 +443,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
    const existing = localStorage.getItem("projects");
 
-  if (!existing) {
-    console.log("📦 Saving DEFAULT_PROJECTS to localStorage");
-    localStorage.setItem("projects", JSON.stringify(DEFAULT_PROJECTS));
-  }
-  
+
+
   // Admin button
   document.getElementById("adminBtn")?.addEventListener("click", toggleAdminPanel);
 
