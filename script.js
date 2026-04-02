@@ -171,23 +171,17 @@ function toggleAdminPanel() {
 
 function closeAdmin() {
   document.getElementById("adminOverlay").classList.remove("show");
-  document.getElementById("adminAuth").classList.remove("hidden");
-  document.getElementById("adminForm").classList.add("hidden");
+
+  // 🔐 Firebase logout
+  if (window.logoutAdmin) {
+    logoutAdmin();
+  }
+
   document.getElementById("adminPass").value = "";
   document.getElementById("authError").classList.add("hidden");
 }
 
-function checkAdmin() {
-  const pass = document.getElementById("adminPass").value;
-  if (pass === ADMIN_PASSWORD) {
-    document.getElementById("adminAuth").classList.add("hidden");
-    document.getElementById("adminForm").classList.remove("hidden");
-    renderAdminList();
-    renderTagManager();   // 👈 yaha add karo
-  } else {
-    document.getElementById("authError").classList.remove("hidden");
-  }
-}
+
 
 function renderAdminList() {
   const projects = getProjects();

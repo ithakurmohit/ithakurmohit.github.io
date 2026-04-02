@@ -48,8 +48,7 @@ window.loginAdmin = function() {
   signInWithEmailAndPassword(auth, email, password)
     .then((userCredential) => {
       // ✅ success
-      document.getElementById("adminAuth").classList.add("hidden");
-      document.getElementById("adminForm").classList.remove("hidden");
+  
     })
     .catch((err) => {
       // ❌ error handling
@@ -82,9 +81,17 @@ window.loginAdmin = function() {
 
 // 🔄 SESSION CHECK
 onAuthStateChanged(auth, (user) => {
-  if (!user) {
-    document.getElementById("adminAuth").classList.add("hidden");
-    document.getElementById("adminForm").classList.remove("hidden");
+  const authBox = document.getElementById("adminAuth");
+  const formBox = document.getElementById("adminForm");
+
+  if (user) {
+    authBox.classList.add("hidden");
+    formBox.classList.remove("hidden");
+       renderAdminList();
+    renderTagManager();
+  } else {
+    formBox.classList.add("hidden");
+    authBox.classList.remove("hidden");
   }
 });
 
