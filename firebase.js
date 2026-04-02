@@ -136,10 +136,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // 🔐 LOGOUT on page change (strict mode)
-window.addEventListener("beforeunload", () => {
+/* window.addEventListener("beforeunload", () => {
   signOut(auth);
 });
-
+ */
 
 document.addEventListener("DOMContentLoaded", async () => {
   await renderProjects();
