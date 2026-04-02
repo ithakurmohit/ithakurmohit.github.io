@@ -101,6 +101,8 @@ window.loginAdmin = function() {
 
 // 🔄 SESSION CHECK
 onAuthStateChanged(auth, async (user) => {
+    window.firebaseAuthCurrentUser = user; // 🔥 ADD THIS
+
    const authBox = document.getElementById("adminAuth");
   const formBox = document.getElementById("adminForm");
 
