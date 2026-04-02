@@ -2,6 +2,10 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { setPersistence, browserSessionPersistence, getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut} 
 from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+import { 
+  getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 
 const firebaseConfig = {
     apiKey: "AIzaSyBZU2iooLFO1eR_aIs7OAban3HtPDybiDE",
@@ -14,6 +18,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 setPersistence(auth, browserSessionPersistence);
 
 // 🔐 LOGIN
@@ -123,3 +128,154 @@ document.addEventListener("DOMContentLoaded", () => {
 window.addEventListener("beforeunload", () => {
   signOut(auth);
 });
+
+
+async function migrateLocalToFirestore() {
+  const local = localStorage.getItem("projects");
+  if (!local) return;
+
+  const projects = JSON.parse(local);
+
+  // check if firestore already has data
+  const snapshot = await getDocs(collection(db, "projects"));
+  if (!snapshot.empty) return; // already migrated
+
+  for (const p of projects) {
+    await addDoc(collection(db, "projects"), p);
+  }
+
+  console.log("✅ Local data migrated to Firestore");
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  await migrateLocalToFirestore();
+  await renderProjects();
+
+  const adminBtn = document.getElementById("adminBtn");
+  if (window.location.hash === "#admin" && adminBtn) {
+    adminBtn.classList.remove("hidden");
+  }
+
+  document.getElementById("f-img")?.addEventListener("input", function() {
+    setImgPreview(this.value.trim());
+  });
+
+  document.getElementById("adminOverlay")?.addEventListener("click", function(e) {
+    if (e.target === this) closeAdmin();
+  });
+
+  document.getElementById("adminPass")?.addEventListener("keydown", function(e) {
+    if (e.key === "Enter") loginAdmin();
+  });
+
+  document.getElementById("adminEmail")?.addEventListener("keydown", function(e) {
+    if (e.key === "Enter") loginAdmin();
+  });
+});
+
+
+window.renderAdminList = async function () {
+  const container = document.getElementById("adminProjectList");
+  if (!container) return;
+
+  const snapshot = await getDocs(collection(db, "projects"));
+  const projects = snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }));
+
+  container.innerHTML = projects.map(p => `
+    <div class="admin-project-item">
+      <img src="${p.img}" 
+           onerror="this.src='assets/profile.jpg'" 
+           style="width:36px;height:36px;border-radius:8px;object-fit:cover;">
+
+      <span>${p.name}</span>
+
+      <div style="margin-left:auto;display:flex;gap:6px;">
+        <button onclick="editProject('${p.id}')">✏️ Edit</button>
+        <button onclick="deleteProject('${p.id}')">🗑 Remove</button>
+      </div>
+    </div>
+  `).join("");
+};
+
+  window.renderProjects = async function () {
+  const grid = document.getElementById("projectGrid");
+  if (!grid) return;
+
+  const snapshot = await getDocs(collection(db, "projects"));
+  const projects = snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }));
+
+  grid.innerHTML = projects.map(p => {
+    const hasPlay = p.link;
+    const hasApple = p.appleLink;
+
+    return `
+    <article class="project">
+      <div class="project-img-wrap">
+        <img src="${p.img}" alt="${p.name}" onerror="this.src='assets/profile.jpg'">
+      </div>
+
+      <div class="p-body">
+        <h3>${p.name}</h3>
+        <p>${p.desc}</p>
+
+        <div class="tech-stack">
+          ${(p.tags || []).map(t => `<span>${t}</span>`).join("")}
+        </div>
+
+        <div class="store-btns">
+          ${hasPlay ? `
+            <a href="${p.link}" target="_blank" class="store-badge store-badge-play">
+              <span>Google Play</span>
+            </a>` : ""}
+
+          ${hasApple ? `
+            <a href="${p.appleLink}" target="_blank" class="store-badge store-badge-apple">
+              <span>App Store</span>
+            </a>` : ""}
+        </div>
+      </div>
+    </article>`;
+  }).join("");
+};
+
+
+window.getProjectsFromFirestore = async function () {
+  const snapshot = await getDocs(collection(db, "projects"));
+  return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+
+  window.renderTagManager = async function (selectedTags = []) {
+  const container = document.getElementById("tagList");
+  if (!container) return;
+
+  const snapshot = await getDocs(collection(db, "projects"));
+  const projects = snapshot.docs.map(doc => doc.data());
+
+  const tagSet = new Set();
+
+  projects.forEach(p => {
+    (p.tags || []).forEach(t => tagSet.add(t));
+  });
+
+  const allTags = Array.from(tagSet);
+
+  container.innerHTML = allTags.map(tag => `
+    <span 
+      class="tag-chip ${selectedTags.includes(tag) ? 'active' : ''}"
+      onclick="toggleTag('${tag}')"
+    >
+      ${tag}
+    </span>
+  `).join("");
+};
+
+window.addProjectToFirestore = async function (project) {
+  await addDoc(collection(db, "projects"), project);
+}

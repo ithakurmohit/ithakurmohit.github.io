@@ -1,7 +1,3 @@
-import { 
-  getFirestore, collection, getDocs 
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
 const DEFAULT_PROJECTS = [
   { id: 1, name: "Hi-Tech Kisan", img: "assets/hitechkisan.webp", desc: "The app focuses on making farming-related purchases more accessible by offering a structured and transparent way to explore products related to agriculture, dairy, and livestock care.", tags: ["Flutter", "Dart", "REST API"], link: "https://play.google.com/store/apps/details?id=com.hitechkisan.app&hl=en_IN", appleLink: "" },
   { id: 2, name: "Dream Square", img: "assets/dream.png", desc: "Dream Square – Property Buy or Sale Made Simple.", tags: ["Flutter", "Dart", "REST API"], link: "https://play.google.com/store/apps/details?id=com.dream.square&hl=en_IN", appleLink: "" },
@@ -26,15 +22,6 @@ const DEFAULT_PROJECTS = [
 // function saveProjects(projects) {
 //   localStorage.setItem("projects", JSON.stringify(projects));
 // }
-
-async function getProjectsFromFirestore() {
-  const snapshot = await getDocs(collection(db, "projects"));
-  return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-}
-
-async function addProjectToFirestore(project) {
-  await addDoc(collection(db, "projects"), project);
-}
 
 async function updateProjectInFirestore(id, data) {
   await updateDoc(doc(db, "projects", id), data);
@@ -78,30 +65,6 @@ async function getAllTags() {
   `).join("");
 } */
 
-  window.renderTagManager = async function (selectedTags = []) {
-  const container = document.getElementById("tagList");
-  if (!container) return;
-
-  const snapshot = await getDocs(collection(db, "projects"));
-  const projects = snapshot.docs.map(doc => doc.data());
-
-  const tagSet = new Set();
-
-  projects.forEach(p => {
-    (p.tags || []).forEach(t => tagSet.add(t));
-  });
-
-  const allTags = Array.from(tagSet);
-
-  container.innerHTML = allTags.map(tag => `
-    <span 
-      class="tag-chip ${selectedTags.includes(tag) ? 'active' : ''}"
-      onclick="toggleTag('${tag}')"
-    >
-      ${tag}
-    </span>
-  `).join("");
-};
 
 async function toggleTag(tag) {
   const input = document.getElementById("f-tags");
@@ -226,31 +189,7 @@ function closeAdmin() {
   document.getElementById("authError").classList.add("hidden");
 }
 
-window.renderAdminList = async function () {
-  const container = document.getElementById("adminProjectList");
-  if (!container) return;
 
-  const snapshot = await getDocs(collection(db, "projects"));
-  const projects = snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  }));
-
-  container.innerHTML = projects.map(p => `
-    <div class="admin-project-item">
-      <img src="${p.img}" 
-           onerror="this.src='assets/profile.jpg'" 
-           style="width:36px;height:36px;border-radius:8px;object-fit:cover;">
-
-      <span>${p.name}</span>
-
-      <div style="margin-left:auto;display:flex;gap:6px;">
-        <button onclick="editProject('${p.id}')">✏️ Edit</button>
-        <button onclick="deleteProject('${p.id}')">🗑 Remove</button>
-      </div>
-    </div>
-  `).join("");
-};
 
 /* async function renderAdminList() {
   const projects = await getProjectsFromFirestore();
@@ -346,49 +285,7 @@ function saveProject() {
   renderAdminList();
 } */
 
-  window.renderProjects = async function () {
-  const grid = document.getElementById("projectGrid");
-  if (!grid) return;
 
-  const snapshot = await getDocs(collection(db, "projects"));
-  const projects = snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  }));
-
-  grid.innerHTML = projects.map(p => {
-    const hasPlay = p.link;
-    const hasApple = p.appleLink;
-
-    return `
-    <article class="project">
-      <div class="project-img-wrap">
-        <img src="${p.img}" alt="${p.name}" onerror="this.src='assets/profile.jpg'">
-      </div>
-
-      <div class="p-body">
-        <h3>${p.name}</h3>
-        <p>${p.desc}</p>
-
-        <div class="tech-stack">
-          ${(p.tags || []).map(t => `<span>${t}</span>`).join("")}
-        </div>
-
-        <div class="store-btns">
-          ${hasPlay ? `
-            <a href="${p.link}" target="_blank" class="store-badge store-badge-play">
-              <span>Google Play</span>
-            </a>` : ""}
-
-          ${hasApple ? `
-            <a href="${p.appleLink}" target="_blank" class="store-badge store-badge-apple">
-              <span>App Store</span>
-            </a>` : ""}
-        </div>
-      </div>
-    </article>`;
-  }).join("");
-};
 
 function setImgPreview(url) {
   const preview = document.getElementById("f-img-preview");
