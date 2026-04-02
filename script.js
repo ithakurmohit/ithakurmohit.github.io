@@ -165,6 +165,10 @@ window.toggleAdminPanel = function () {
 
   overlay.classList.add("show");
 
+  // ✅ Inline styles hatao (agar koi pehle se set hai)
+  authBox.style.display = "";
+  formBox.style.display = "";
+
   if (user) {
     authBox.classList.add("hidden");
     formBox.classList.remove("hidden");
@@ -175,13 +179,17 @@ window.toggleAdminPanel = function () {
 };
 
 function closeAdmin() {
-  document.getElementById("adminOverlay").classList.remove("show");
-
-  // 🔐 Firebase logout
-  if (window.logoutAdmin) {
-    logoutAdmin();
-  }
-
+  const overlay = document.getElementById("adminOverlay");
+  const authBox = document.getElementById("adminAuth");
+  const formBox = document.getElementById("adminForm");
+  
+  overlay.classList.remove("show");
+  
+  // ✅ Inline styles reset
+  authBox.style.display = "";
+  formBox.style.display = "";
+  
+  if (window.logoutAdmin) { logoutAdmin(); }
   document.getElementById("adminPass").value = "";
   document.getElementById("authError").classList.add("hidden");
 }

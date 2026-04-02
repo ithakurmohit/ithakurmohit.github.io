@@ -57,14 +57,17 @@ window.loginAdmin = function() {
   signInWithEmailAndPassword(auth, email, password)
     .then((userCredential) => {
 
-  console.log("✅ Login success");
+console.log("✅ Login success");
 
-  // ✅ Remove any inline styles that might block visibility
-  document.getElementById("adminAuth").style.display = "";
-  document.getElementById("adminForm").style.display = "";
+  const authBox = document.getElementById("adminAuth");
+  const formBox = document.getElementById("adminForm");
 
-  document.getElementById("adminAuth").classList.add("hidden");
-  document.getElementById("adminForm").classList.remove("hidden");
+  // ✅ Inline styles hatao
+  authBox.style.display = "";
+  formBox.style.display = "";
+
+  authBox.classList.add("hidden");
+  formBox.classList.remove("hidden");
   document.getElementById("adminOverlay").classList.add("show");
 
   renderAdminList();
