@@ -89,13 +89,14 @@ window.loginAdmin = function() {
 };
 
 // 🔄 SESSION CHECK
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
   const authBox = document.getElementById("adminAuth");
   const formBox = document.getElementById("adminForm");
 
   if (user) {
     authBox.classList.add("hidden");
     formBox.classList.remove("hidden");
+        await renderProjects();   // 🔥 ADD THIS
        renderAdminList();
     renderTagManager();
   } else {
@@ -130,38 +131,7 @@ window.addEventListener("beforeunload", () => {
 });
 
 
-async function migrateLocalToFirestore() {
-  try {
-    console.log("🚀 Starting migration...");
-
-    const local = localStorage.getItem("projects");
-    if (!local) {
-      console.log("❌ No local projects found");
-      return;
-    }
-
-    const projects = JSON.parse(local);
-
-    const snapshot = await getDocs(collection(db, "projects"));
-
-    if (!snapshot.empty) {
-      console.log("⚠️ Firestore already has data, skipping migration");
-      return;
-    }
-
-    for (const p of projects) {
-      console.log("📤 Uploading:", p.name);
-      await addDoc(collection(db, "projects"), p);
-    }
-
-    console.log("✅ Migration completed");
-  } catch (e) {
-    console.error("❌ Migration error:", e);
-  }
-}
-
 document.addEventListener("DOMContentLoaded", async () => {
-  await migrateLocalToFirestore();
   await renderProjects();
 
   const adminBtn = document.getElementById("adminBtn");
