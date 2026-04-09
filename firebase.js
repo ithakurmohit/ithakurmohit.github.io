@@ -64,7 +64,7 @@ console.log("✅ Login success");
 
   // ✅ IMPORTANT: Inline styles hatao jo toggleAdminPanel ne set kiye hain
   authBox.style.display = "";
-  formBox.style.display = "";
+  formBox.style.display = "block";   // ← important
 
   authBox.classList.add("hidden");
   formBox.classList.remove("hidden");
@@ -105,8 +105,7 @@ console.log("✅ Login success");
 
 // 🔄 SESSION CHECK
 onAuthStateChanged(auth, async (user) => {
- window.firebaseAuthCurrentUser = user;
-
+  window.firebaseAuthCurrentUser = user;
   const authBox = document.getElementById("adminAuth");
   const formBox = document.getElementById("adminForm");
 
@@ -115,14 +114,14 @@ onAuthStateChanged(auth, async (user) => {
   if (user) {
     authBox.classList.add("hidden");
     formBox.classList.remove("hidden");
-    formBox.style.display = "block"; // 🔥 ADD THIS
-    // 🔥 ADD THIS
+    formBox.style.display = "block";
     await renderAdminList();
     await renderTagManager();
-
   } else {
     formBox.classList.add("hidden");
     authBox.classList.remove("hidden");
+    authBox.style.display = "block";
+    formBox.style.display = "none";   // 🔥 IMPORTANT
   }
 });
 
@@ -296,16 +295,18 @@ window.updateProjectInFirestore=async function (id, data) {
   try {
     console.log("✏️ Updating:", id, data);
 
-    await updateDoc(doc(db, "projects", id), data);
+        const docRef = doc(db, "projects", String(id)); // ✅ Ensure string
+
+        await updateDoc(docRef, data);
 
     console.log("✅ Updated");
   } catch (e) {
     console.error("❌ Update Error:", e);
+      throw e; // Propagate error
   }
 }
 
-
-  window.renderTagManager = async function (selectedTags = []) {
+window.renderTagManager = async function (selectedTags = []) {
   const container = document.getElementById("tagList");
   if (!container) return;
 
@@ -313,25 +314,20 @@ window.updateProjectInFirestore=async function (id, data) {
   const projects = snapshot.docs.map(doc => doc.data());
 
   const tagSet = new Set();
-
   projects.forEach(p => {
     (p.tags || []).forEach(t => tagSet.add(t));
   });
-
   const allTags = Array.from(tagSet);
 
   container.innerHTML = allTags.map(tag => `
-  <span class="tag-chip" data-tag="${tag}">
-    ${tag}
-  </span>
-`).join("");
+    <span class="tag-chip ${selectedTags.includes(tag) ? 'active' : ''}" data-tag="${tag}">
+      ${tag}
+    </span>
+  `).join("");
 
-container.querySelectorAll(".tag-chip").forEach(el => {
-  el.addEventListener("click", () => {
-    toggleTag(el.dataset.tag);
-  });
-});
+  // ✅ No direct click listeners – delegation will handle
 };
+
 
 window.addProjectToFirestore = async function (project) {
   try {
@@ -350,7 +346,7 @@ window.deleteProjectFromFirestore = async function (id) {
   try {
     console.log("🗑 Deleting:", id);
 
-    await deleteDoc(doc(db, "projects", id));
+    await deleteDoc(doc(db, "projects", String(id))); // ✅ Ensure string
 
     console.log("✅ Deleted");
   } catch (e) {

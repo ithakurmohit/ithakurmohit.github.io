@@ -52,6 +52,8 @@ async function getAllTags() {
 
 async function toggleTag(tag) {
   const input = document.getElementById("f-tags");
+  if (!input) return;
+  
   let current = input.value ? input.value.split(",").map(t => t.trim()).filter(Boolean) : [];
 
   if (current.includes(tag)) {
@@ -61,7 +63,11 @@ async function toggleTag(tag) {
   }
 
   input.value = current.join(", ");
-  await renderTagManager(current);
+  
+  // Re-render tag manager with updated selection
+  if (window.renderTagManager) {
+    await window.renderTagManager(current);
+  }
 }
 
 async function addNewTag() {
@@ -157,46 +163,40 @@ window.toggleAdminPanel = function () {
     alert("Unauthorized access ❌");
     return;
   }
-
   const overlay = document.getElementById("adminOverlay");
   const authBox = document.getElementById("adminAuth");
   const formBox = document.getElementById("adminForm");
   const user = window.firebaseAuthCurrentUser || null;
 
-  overlay.classList.add("show");
-
-  // ✅ Inline styles hatao (agar koi pehle se set hai)
-  authBox.style.display = "";
-  formBox.style.display = "";
-
-  if (user) {
-    authBox.classList.add("hidden");
-    formBox.classList.remove("hidden");
-  } else {
+   // ✅ Agar user logged in nahi hai, to sirf login form dikhao
+  if (!user) {
+    overlay.classList.add("show");
+    authBox.style.display = "block";
+    formBox.style.display = "none";
     authBox.classList.remove("hidden");
     formBox.classList.add("hidden");
+    return;
   }
+
+   // ✅ User logged in hai to admin form dikhao
+  overlay.classList.add("show");
+  authBox.style.display = "none";
+  formBox.style.display = "block";
+  authBox.classList.add("hidden");
+  formBox.classList.remove("hidden");
 };
 
 function closeAdmin() {
   const overlay = document.getElementById("adminOverlay");
-  const authBox = document.getElementById("adminAuth");
-  const formBox = document.getElementById("adminForm");
-
   overlay.classList.remove("show");
 
-  // ✅ Inline styles hatao
-  authBox.style.display = "";
-  formBox.style.display = "";
-
   if (window.logoutAdmin) {
-    logoutAdmin();
+    logoutAdmin();   // ye signOut karega, phir onAuthStateChanged fire hoga
   }
 
   document.getElementById("adminPass").value = "";
   document.getElementById("authError").classList.add("hidden");
 }
-
 
 
 /* async function renderAdminList() {
@@ -215,27 +215,47 @@ function closeAdmin() {
 
   
 async function editProject(id) {
+
+   try {
+  console.log("✏️ Edit called with id:", id);
+
   const projects = await getProjectsFromFirestore();
-  const p = projects.find(item => item.id === id);
-  if (!p) return;
+    const p = projects.find(item => String(item.id) === String(id));
+      console.log("Project data:", p);
+ if (!p) {
+      console.error("Project not found:", id);
+      return;
+    }
 
-  document.getElementById("f-edit-id").value = id;
-  document.getElementById("f-name").value = p.name;
-  document.getElementById("f-img").value = p.img;
-  document.getElementById("f-desc").value = p.desc;
-  document.getElementById("f-tags").value = p.tags.join(", ");
-  document.getElementById("f-link").value = p.link || "";
-  document.getElementById("f-link-apple-store").value = p.appleLink || "";
-  document.getElementById("f-has-play").checked = !!p.link;
-  document.getElementById("f-has-apple").checked = !!p.appleLink;
-  setImgPreview(p.img);
+        console.log("Project data:", p);
 
-  document.getElementById("formTitle").textContent = "✏️ Edit Project";
-  document.getElementById("submitBtn").textContent = "💾 Save Changes";
-  document.getElementById("cancelEditBtn").classList.remove("hidden");
+  // Safely set form fields
+    document.getElementById("f-edit-id").value = id;
+    document.getElementById("f-name").value = p.name || "";
+    document.getElementById("f-img").value = p.img || "";
+    document.getElementById("f-desc").value = p.desc || "";
+    
+    const tagsArray = Array.isArray(p.tags) ? p.tags : [];
+    document.getElementById("f-tags").value = tagsArray.join(", ");
+    document.getElementById("f-link").value = p.link || "";
+    document.getElementById("f-link-apple-store").value = p.appleLink || "";
+    document.getElementById("f-has-play").checked = !!(p.link);
+    document.getElementById("f-has-apple").checked = !!(p.appleLink);
+    
+    setImgPreview(p.img || "");
 
-  document.getElementById("formTitle").scrollIntoView({ behavior: "smooth" });
-  await renderTagManager(p.tags || []);
+    document.getElementById("formTitle").textContent = "✏️ Edit Project";
+    document.getElementById("submitBtn").textContent = "💾 Save Changes";
+    document.getElementById("cancelEditBtn").classList.remove("hidden");
+
+    document.getElementById("formTitle").scrollIntoView({ behavior: "smooth" });
+    
+    // Safely render tag manager
+    await renderTagManager(tagsArray);
+ } catch (error) {
+    console.error("Error in editProject:", error);
+   
+  }
 }
 
 function cancelEdit() {
@@ -252,6 +272,7 @@ function cancelEdit() {
 }
 
 async function updateProject(id) {
+  console.log("Updating project:", id);
   const name = document.getElementById("f-name").value.trim();
   const img = document.getElementById("f-img").value.trim();
   const desc = document.getElementById("f-desc").value.trim();
@@ -265,11 +286,12 @@ async function updateProject(id) {
     alert("Name, Image aur Description required hai.");
     return;
   }
+ const stringId = String(id);
 
-  await updateProjectInFirestore(id, {
-    name,
-    img,
-    desc,
+   try {
+
+  await updateProjectInFirestore(stringId, {
+    name, img, desc,
     tags: tags ? tags.split(",").map(t => t.trim()).filter(Boolean) : [],
     link: playLink,
     appleLink
@@ -280,9 +302,13 @@ async function updateProject(id) {
   cancelEdit();
 
   const msg = document.getElementById("formMsg");
-  msg.textContent = "Project updated!";
+  msg.textContent = "✅ Project updated successfully!";
   msg.classList.remove("hidden");
-  setTimeout(() => msg.classList.add("hidden"), 2500);
+  setTimeout(() => msg.classList.add("hidden"), 3000);
+   } catch (error) {
+    console.error("Update error:", error);
+    alert("Update failed: " + error.message);
+  }
 }
 
 function saveProject() {
@@ -443,6 +469,12 @@ async function addProject() {
   await renderProjects();
   await renderAdminList();
   cancelEdit();
+
+   // ✅ Show success message
+  const msg = document.getElementById("formMsg");
+  msg.textContent = "✅ Project added successfully!";
+  msg.classList.remove("hidden");
+  setTimeout(() => msg.classList.add("hidden"), 3000);
 }
 
 /* async function addProject() {
@@ -488,15 +520,6 @@ document.getElementById("adminProjectList")?.addEventListener("click", (e) => {
   }
 });
 
-document.getElementById("addTagBtn")?.addEventListener("click", addNewTag);
-
-document.getElementById("playFetchBtn")?.addEventListener("click", () => {
-  fetchAppDetails("play");
-});
-
-document.getElementById("submitBtn")?.addEventListener("click", saveProject);
-
-document.getElementById("closeAdminBtn")?.addEventListener("click", closeAdmin);
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -518,11 +541,42 @@ document.addEventListener("DOMContentLoaded", () => {
   // Cancel edit
   document.getElementById("cancelEditBtn")?.addEventListener("click", cancelEdit);
 
+   const fileInput = document.getElementById("f-img-upload");
+  if (fileInput) {
+    fileInput.removeAttribute("onchange");
+    fileInput.addEventListener("change", handleImgUpload);
+  }
+
 });
 
+
+document.getElementById("addTagBtn")?.addEventListener("click", addNewTag);
+
+document.getElementById("playFetchBtn")?.addEventListener("click", () => {
+  fetchAppDetails("play");
+});
+
+document.getElementById("submitBtn")?.addEventListener("click", saveProject);
+
+document.getElementById("closeAdminBtn")?.addEventListener("click", closeAdmin);
+
 document.getElementById("tagList")?.addEventListener("click", (e) => {
-  const tag = e.target.closest(".tag-chip");
-  if (tag) {
-    toggleTag(tag.dataset.tag);
+  const tagChip = e.target.closest(".tag-chip");
+  if (tagChip) {
+    const tag = tagChip.dataset.tag;
+    if (tag) toggleTag(tag);
   }
 });
+
+
+// Make functions global for inline event handlers and cross-module access
+window.handleImgUpload = handleImgUpload;
+window.setImgPreview = setImgPreview;
+window.toggleTag = toggleTag;
+window.addNewTag = addNewTag;
+window.cancelEdit = cancelEdit;
+window.saveProject = saveProject;
+window.editProject = editProject;
+window.deleteProject = deleteProject;
+window.fetchAppDetails = fetchAppDetails;
+window.closeAdmin = closeAdmin;

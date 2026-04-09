@@ -115,7 +115,7 @@
             <input type="text" id="f-img" placeholder="Image URL or assets/app.png *" />
             <label class="upload-btn" title="Upload image">
               📁
-              <input type="file" id="f-img-upload" accept="image/*" style="display:none" onchange="handleImgUpload(event)" />
+              <input type="file" id="f-img-upload" accept="image/*" style="display:none" />
             </label>
             <img id="f-img-preview" src="" alt="" class="img-preview hidden" />
           </div>
@@ -137,7 +137,7 @@
           </div>
           <input type="text" id="f-link-apple-store" placeholder="App Store URL (if available)" />
         </div>
-        <button class="btn" id="submitBtn" id="submitBtn">➕ Add Project</button>
+        <button class="btn" id="submitBtn">➕ Add Project</button>
         <button class="btn btn-cancel hidden" id="cancelEditBtn">✖ Cancel Edit</button>
         <p id="formMsg" class="success hidden">Project added!</p>
         <hr>

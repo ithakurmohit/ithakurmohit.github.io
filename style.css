@@ -271,6 +271,17 @@ footer {
   display: none !important;   /* Agar ye hai to theek hai, warna daal do */
 }
 
+#formMsg {
+  position: initial;
+  bottom: 20px;
+  right: 20px;
+  background: #16a34a;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
 .fetch-row {
   display: flex;
   gap: 8px;
@@ -477,9 +488,6 @@ footer {
   margin-top: 8px;
 }
 
-#adminForm {
-  display: none;
-}
 
 /* ── RESPONSIVE ── */
 @media (max-width: 600px) {
