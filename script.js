@@ -239,8 +239,8 @@ async function editProject(id) {
     document.getElementById("f-tags").value = tagsArray.join(", ");
     document.getElementById("f-link").value = p.link || "";
     document.getElementById("f-link-apple-store").value = p.appleLink || "";
-    document.getElementById("f-has-play").checked = !!(p.link);
-    document.getElementById("f-has-apple").checked = !!(p.appleLink);
+    document.getElementById("f-has-play").checked = p.hasPlay !== undefined ? p.hasPlay : !!(p.link);
+    document.getElementById("f-has-apple").checked = p.hasApple !== undefined ? p.hasApple : !!(p.appleLink);
     
     setImgPreview(p.img || "");
 
@@ -294,7 +294,9 @@ async function updateProject(id) {
     name, img, desc,
     tags: tags ? tags.split(",").map(t => t.trim()).filter(Boolean) : [],
     link: playLink,
-    appleLink
+    appleLink,
+    hasPlay,
+    hasApple
   });
 
   await renderProjects();
@@ -420,7 +422,16 @@ async function fetchAppDetails(type) {
       const desc = descMatch ? descMatch[1].trim() : "";
       const ogImgMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/) ||
                          html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/);
-      const iconUrl = ogImgMatch ? ogImgMatch[1].split("=")[0] + "=w120-h120" : "";
+      let iconUrl = ogImgMatch ? ogImgMatch[1] : "";
+      
+      if (!iconUrl) {
+          const imgMatch = html.match(/https:\/\/play-lh\.googleusercontent\.com\/[a-zA-Z0-9_-]+/);
+          if (imgMatch) iconUrl = imgMatch[0];
+      }
+
+      if (iconUrl) {
+          iconUrl = iconUrl.split("=")[0] + "=w120-h120";
+      }
 
       if (appName) document.getElementById("f-name").value = appName;
       if (desc) document.getElementById("f-desc").value = desc.slice(0, 200);
@@ -457,13 +468,28 @@ async function addProject() {
     return;
   }
 
+  const existingProjects = await window.getProjectsFromFirestore();
+  const isDuplicate = existingProjects.some(p => 
+    p.name.toLowerCase() === name.toLowerCase() || 
+    (playLink && p.link === playLink) || 
+    (appleLink && p.appleLink === appleLink)
+  );
+
+  if (isDuplicate) {
+    alert("⚠️ This project name or link already exists!");
+    return;
+  }
+
   await addProjectToFirestore({
     name,
     img,
     desc,
     tags: tags ? tags.split(",").map(t => t.trim()).filter(Boolean) : [],
     link: playLink,
-    appleLink
+    appleLink,
+    hasPlay,
+    hasApple,
+    createdAt: Date.now()
   });
 
   await renderProjects();

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -34,7 +35,8 @@
 
     <section id="about">
       <h2>About</h2>
-      <p>Experienced Android &amp; Flutter Developer with 4+ years in building production apps. Strong background in Kotlin, Java, Flutter and working with Firebase, payment gateways and Android NDK for API security.</p>
+      <p>Experienced Android &amp; Flutter Developer with 4+ years in building production apps. Strong background in
+        Kotlin, Java, Flutter and working with Firebase, payment gateways and Android NDK for API security.</p>
       <ul class="meta">
         <li><strong>Top skills:</strong> Kotlin, Java, Flutter, Jetpack, Firebase, REST APIs, MVVM</li>
         <li><strong>Certifications:</strong> PHP, Java, HTML</li>
@@ -50,7 +52,8 @@
       <h2>Experience</h2>
       <ul class="exp-list">
         <li>
-          <div class="exp-header"><strong>Comrade Tech Solutions</strong> <span class="exp-date">Jul 2023 – Present</span></div>
+          <div class="exp-header"><strong>Comrade Tech Solutions</strong> <span class="exp-date">Jul 2023 –
+              Present</span></div>
           <p>Android &amp; Flutter Developer — Enhancements, bug fixes, payment integrations and API security.</p>
         </li>
         <li>
@@ -58,11 +61,13 @@
           <p>Java &amp; Android Developer</p>
         </li>
         <li>
-          <div class="exp-header"><strong>AARA Technologies Pvt Ltd</strong> <span class="exp-date">May 2022 – Nov 2022</span></div>
+          <div class="exp-header"><strong>AARA Technologies Pvt Ltd</strong> <span class="exp-date">May 2022 – Nov
+              2022</span></div>
           <p>Android Developer</p>
         </li>
         <li>
-          <div class="exp-header"><strong>PWS Information Technology</strong> <span class="exp-date">Jan 2021 – Apr 2022</span></div>
+          <div class="exp-header"><strong>PWS Information Technology</strong> <span class="exp-date">Jan 2021 – Apr
+              2022</span></div>
           <p>Android Developer</p>
         </li>
       </ul>
@@ -72,31 +77,32 @@
 
   <footer>
     <p>© 2025 Mohit Singh — Android &amp; Flutter Developer</p>
-<button id="adminBtn" class="admin-btn hidden">⚙ Manage Projects</button>  </footer>
+    <button id="adminBtn" class="admin-btn hidden">⚙ Manage Projects</button>
+  </footer>
 
   <!-- Admin Panel -->
   <div id="adminOverlay" class="modal">
     <div class="modal-content admin-panel">
       <span class="close" id="closeAdminBtn">&times;</span>
       <div id="adminAuth">
-  <h3>Admin Login</h3>
+        <h3>Admin Login</h3>
 
-  <!-- 👇 NEW email field -->
-  <input type="email" id="adminEmail" placeholder="Enter email" />
+        <!-- 👇 NEW email field -->
+        <input type="email" id="adminEmail" placeholder="Enter email" />
 
-  <!-- existing password -->
-  <input type="password" id="adminPass" placeholder="Enter password" />
+        <!-- existing password -->
+        <input type="password" id="adminPass" placeholder="Enter password" />
 
-  <div class="g-recaptcha" data-sitekey="6LcLB6MsAAAAACCI-E98G4OAeVahlOW-fv33IZEk"></div>
-    <!-- 👇 Button + Loader -->
-  <button class="btn" id="loginBtn" >
-    <span id="btnText">Login</span>
-    <span id="btnLoader" class="hidden">⏳</span>
-  </button>
+        <div class="g-recaptcha" data-sitekey="6LcLB6MsAAAAACCI-E98G4OAeVahlOW-fv33IZEk"></div>
+        <!-- 👇 Button + Loader -->
+        <button class="btn" id="loginBtn">
+          <span id="btnText">Login</span>
+          <span id="btnLoader" class="hidden">⏳</span>
+        </button>
 
-  <!-- 👇 Error Message -->
-  <p id="authError" class="error hidden"></p>
-</div>
+        <!-- 👇 Error Message -->
+        <p id="authError" class="error hidden"></p>
+      </div>
       <div id="adminForm" class="hidden">
         <h3 id="formTitle">Add New Project</h3>
         <input type="hidden" id="f-edit-id" value="" />
@@ -122,15 +128,15 @@
           <textarea id="f-desc" placeholder="Description *" rows="3"></textarea>
           <input type="text" id="f-tags" placeholder="Tech tags (comma separated) e.g. Kotlin, Firebase" />
           <div>
-  <h4>Manage Tags</h4>
+            <h4>Manage Tags</h4>
 
-  <div id="tagList" class="tag-list"></div>
+            <div id="tagList" class="tag-list"></div>
 
-  <div class="tag-add-row">
-    <input type="text" id="newTagInput" placeholder="Add new tag" />
-    <button id="addTagBtn">➕ Add</button>
-  </div>
-</div>
+            <div class="tag-add-row">
+              <input type="text" id="newTagInput" placeholder="Add new tag" />
+              <button id="addTagBtn">➕ Add</button>
+            </div>
+          </div>
           <div class="store-check-row">
             <label><input type="checkbox" id="f-has-play" checked /> Available on Play Store</label>
             <label><input type="checkbox" id="f-has-apple" /> Available on App Store</label>
@@ -148,6 +154,7 @@
   </div>
 
   <script type="module" src="firebase.js"></script>
-   <script type="module" src="script.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
+
 </html>
