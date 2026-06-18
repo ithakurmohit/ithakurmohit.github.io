@@ -264,7 +264,7 @@ footer {
 
 /* ── ADMIN AUTH LOGIN UI ── */
 #adminAuth {
-  display: flex !important;
+  display: flex;
   flex-direction: column;
   gap: 16px;
   max-width: 380px;
