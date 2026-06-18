@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<body>
+<pre id="out"></pre>
+<script>
+async function test() {
+  try {
+    const playUrl = "https://play.google.com/store/apps/details?id=com.prizookart.shop&hl=en";
+    const proxyUrl = "proxy.php?url=" + encodeURIComponent(playUrl);
+    const res = await fetch(proxyUrl);
+    const text = await res.text();
+    let out = document.getElementById("out");
+    out.textContent = "Raw proxy.php output: \n" + text.substring(0, 500) + "\n\n";
+
+    const json = JSON.parse(text);
+    if(json.error) {
+        out.textContent += "Proxy returned error: " + json.error;
+    } else {
+        out.textContent += "Success, fetched " + json.contents.length + " bytes";
+    }
+
+  } catch(e) {
+    document.getElementById("out").textContent += "Error: " + e;
+  }
+}
+test();
+</script>
+</body>
+</html>

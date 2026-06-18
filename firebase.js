@@ -73,7 +73,8 @@ window.loginAdmin = function () {
 
       renderAdminList();
       renderTagManager();
-
+      if (window.renderAdminExperienceList) renderAdminExperienceList();
+      if (window.renderExpRoleManager) renderExpRoleManager();
     })
     .catch((err) => {
       // ❌ error handling
@@ -118,6 +119,8 @@ onAuthStateChanged(auth, async (user) => {
     formBox.style.display = "block";
     await renderAdminList();
     await renderTagManager();
+    if (window.renderAdminExperienceList) await renderAdminExperienceList();
+    if (window.renderExpRoleManager) await renderExpRoleManager();
   } else {
     formBox.classList.add("hidden");
     authBox.classList.remove("hidden");
@@ -159,6 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 document.addEventListener("DOMContentLoaded", async () => {
   await renderProjects();
+  if (window.renderExperiences) await renderExperiences();
 
   const adminBtn = document.getElementById("adminBtn");
   if (window.location.hash === "#admin" && adminBtn) {
@@ -192,17 +196,24 @@ window.renderAdminList = async function () {
     ...doc.data(),
     id: doc.id
   }));
-  projects.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  projects.sort((a, b) => {
+    const orderA = a.order !== undefined ? a.order : -1;
+    const orderB = b.order !== undefined ? b.order : -1;
+    if (orderA !== orderB) return orderA - orderB;
+    return (b.createdAt || 0) - (a.createdAt || 0);
+  });
 
   container.innerHTML = projects.map(p => `
-    <div class="admin-project-item">
+    <div class="admin-project-item" draggable="true" data-id="${p.id}" style="cursor: grab; display: flex; align-items: center; padding: 10px; border: 1px solid #ddd; margin-bottom: 8px; border-radius: 8px; background: #fff; transition: background 0.2s;">
+      <span class="drag-handle" style="cursor: grab; margin-right: 12px; font-size: 18px; color: #888;">☰</span>
       <img src="${p.img}" 
            onerror="this.src='assets/profile.jpg'" 
+           referrerpolicy="no-referrer"
            style="width:36px;height:36px;border-radius:8px;object-fit:cover;">
 
-      <span>${p.name}</span>
+      <span style="margin-left: 12px; font-weight: 500;">${p.name}</span>
 
-      <div style="margin-left:auto;display:flex;gap:6px;">
+      <div style="margin-left:auto;display:flex;gap:6px; align-items: center;">
         <button class="edit-btn" data-id="${p.id}">✏️ Edit</button>
         <button class="delete-btn" data-id="${p.id}">🗑 Remove</button>
       </div>
@@ -228,7 +239,12 @@ window.renderProjects = async function () {
       ...doc.data(),
       id: doc.id
     }));
-    projects.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    projects.sort((a, b) => {
+      const orderA = a.order !== undefined ? a.order : -1;
+      const orderB = b.order !== undefined ? b.order : -1;
+      if (orderA !== orderB) return orderA - orderB;
+      return (b.createdAt || 0) - (a.createdAt || 0);
+    });
 
     grid.innerHTML = projects.map(p => {
       const hasPlay = p.hasPlay !== undefined ? p.hasPlay : !!p.link;
@@ -237,7 +253,7 @@ window.renderProjects = async function () {
       return `
   <article class="project">
     <div class="project-img-wrap">
-      <img src="${p.img}" alt="${p.name}" onerror="this.src='assets/profile.jpg'">
+      <img src="${p.img}" alt="${p.name}" onerror="this.src='assets/profile.jpg'" referrerpolicy="no-referrer">
     </div>
 
     <div class="p-body">
@@ -289,7 +305,12 @@ window.getProjectsFromFirestore = async function () {
       ...d.data(),
       id: d.id
     }));
-    data.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    data.sort((a, b) => {
+      const orderA = a.order !== undefined ? a.order : -1;
+      const orderB = b.order !== undefined ? b.order : -1;
+      if (orderA !== orderB) return orderA - orderB;
+      return (b.createdAt || 0) - (a.createdAt || 0);
+    });
 
     console.log("✅ Projects:", data);
 
@@ -361,4 +382,218 @@ window.deleteProjectFromFirestore = async function (id) {
   } catch (e) {
     console.error("❌ Delete Error:", e);
   }
+};
+
+window.renderExperiences = async function () {
+  try {
+    console.log("📡 Rendering experiences...");
+    const listContainer = document.getElementById("experienceList");
+    if (!listContainer) {
+      console.error("❌ experienceList not found");
+      return;
+    }
+    let snapshot = await getDocs(collection(db, "experience"));
+    console.log("📦 Experience Docs:", snapshot.docs.length);
+
+    if (snapshot.empty) {
+      console.log("🌱 Seeding default experiences...");
+      const defaultExps = [
+        {
+          company: "Comrade Tech Solutions",
+          duration: "Jul 2023 – Present",
+          role: "Android & Flutter Developer — Enhancements, bug fixes, payment integrations and API security.",
+          order: 0,
+          createdAt: Date.now() - 1000
+        },
+        {
+          company: "Sanda Group",
+          duration: "Nov 2022 – Jun 2023",
+          role: "Java & Android Developer",
+          order: 1,
+          createdAt: Date.now() - 2000
+        },
+        {
+          company: "AARA Technologies Pvt Ltd",
+          duration: "May 2022 – Nov 2022",
+          role: "Android Developer",
+          order: 2,
+          createdAt: Date.now() - 3000
+        },
+        {
+          company: "PWS Information Technology",
+          duration: "Jan 2021 – Apr 2022",
+          role: "Android Developer",
+          order: 3,
+          createdAt: Date.now() - 4000
+        }
+      ];
+
+      for (const exp of defaultExps) {
+        await addDoc(collection(db, "experience"), exp);
+      }
+      snapshot = await getDocs(collection(db, "experience"));
+    }
+
+    const experiences = snapshot.docs.map(doc => ({
+      ...doc.data(),
+      id: doc.id
+    }));
+    experiences.sort((a, b) => {
+      const orderA = a.order !== undefined ? a.order : -1;
+      const orderB = b.order !== undefined ? b.order : -1;
+      if (orderA !== orderB) return orderA - orderB;
+      return (b.createdAt || 0) - (a.createdAt || 0);
+    });
+
+    listContainer.innerHTML = experiences.map(exp => {
+      let roleHtml = "";
+      if (exp.roles && exp.roles.length > 0) {
+        const rolesStr = exp.roles.join(" & ");
+        if (exp.desc) {
+          roleHtml = `<p>${rolesStr} — ${exp.desc}</p>`;
+        } else {
+          roleHtml = `<p>${rolesStr}</p>`;
+        }
+      } else if (exp.role) {
+        roleHtml = `<p>${exp.role}</p>`;
+      } else if (exp.desc) {
+        roleHtml = `<p>${exp.desc}</p>`;
+      }
+      return `
+        <li>
+          <div class="exp-header"><strong>${exp.company}</strong> <span class="exp-date">${exp.duration}</span></div>
+          ${roleHtml}
+        </li>
+      `;
+    }).join("");
+  } catch (e) {
+    console.error("❌ Experience Render Error:", e);
+  }
+};
+
+window.renderAdminExperienceList = async function () {
+  const container = document.getElementById("adminExperienceList");
+  if (!container) return;
+
+  const snapshot = await getDocs(collection(db, "experience"));
+  const experiences = snapshot.docs.map(doc => ({
+    ...doc.data(),
+    id: doc.id
+  }));
+  experiences.sort((a, b) => {
+    const orderA = a.order !== undefined ? a.order : -1;
+    const orderB = b.order !== undefined ? b.order : -1;
+    if (orderA !== orderB) return orderA - orderB;
+    return (b.createdAt || 0) - (a.createdAt || 0);
+  });
+
+  container.innerHTML = experiences.map(exp => {
+    let roleSummary = "";
+    if (exp.roles && exp.roles.length > 0) {
+      roleSummary = exp.roles.join(" & ");
+      if (exp.desc) {
+        roleSummary += ` — ${exp.desc}`;
+      }
+    } else if (exp.role) {
+      roleSummary = exp.role;
+    } else if (exp.desc) {
+      roleSummary = exp.desc;
+    }
+    const displaySummary = roleSummary ? `${roleSummary.slice(0, 50)}${roleSummary.length > 50 ? '...' : ''} ` : "";
+    return `
+      <div class="admin-experience-item" draggable="true" data-id="${exp.id}" style="cursor: grab; display: flex; align-items: center; padding: 10px; border: 1px solid #ddd; margin-bottom: 8px; border-radius: 8px; background: #fff; transition: background 0.2s;">
+        <span class="drag-handle" style="cursor: grab; margin-right: 12px; font-size: 18px; color: #888;">☰</span>
+        <div style="display: flex; flex-direction: column; gap: 2px;">
+          <span style="font-weight: 600;">${exp.company}</span>
+          <span style="font-size: 12px; color: #666;">${displaySummary}(${exp.duration})</span>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:6px; align-items: center;">
+          <button class="edit-btn exp-edit-btn" data-id="${exp.id}">✏️ Edit</button>
+          <button class="delete-btn exp-delete-btn" data-id="${exp.id}">🗑 Remove</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+};
+
+window.getExperiencesFromFirestore = async function () {
+  try {
+    const snapshot = await getDocs(collection(db, "experience"));
+    const data = snapshot.docs.map(d => ({
+      ...d.data(),
+      id: d.id
+    }));
+    data.sort((a, b) => {
+      const orderA = a.order !== undefined ? a.order : -1;
+      const orderB = b.order !== undefined ? b.order : -1;
+      if (orderA !== orderB) return orderA - orderB;
+      return (b.createdAt || 0) - (a.createdAt || 0);
+    });
+    return data;
+  } catch (e) {
+    console.error("❌ Fetch Experience Error:", e);
+    return [];
+  }
+};
+
+window.addExperienceToFirestore = async function (experience) {
+  try {
+    console.log("🔥 Adding experience:", experience);
+    const res = await addDoc(collection(db, "experience"), experience);
+    console.log("✅ Experience added with ID:", res.id);
+  } catch (e) {
+    console.error("❌ Add Experience Error:", e);
+    alert(e.message);
+  }
+};
+
+window.updateExperienceInFirestore = async function (id, data) {
+  try {
+    console.log("✏️ Updating experience:", id, data);
+    const docRef = doc(db, "experience", String(id));
+    await updateDoc(docRef, data);
+    console.log("✅ Experience updated");
+  } catch (e) {
+    console.error("❌ Update Experience Error:", e);
+    throw e;
+  }
+};
+
+window.deleteExperienceFromFirestore = async function (id) {
+  try {
+    console.log("🗑 Deleting experience:", id);
+    await deleteDoc(doc(db, "experience", String(id)));
+    console.log("✅ Experience deleted");
+  } catch (e) {
+    console.error("❌ Delete Experience Error:", e);
+  }
+};
+
+window.renderExpRoleManager = async function (selectedRoles = []) {
+  const container = document.getElementById("expRoleList");
+  if (!container) return;
+
+  const snapshot = await getDocs(collection(db, "experience"));
+  const experiences = snapshot.docs.map(doc => doc.data());
+
+  const roleSet = new Set();
+  
+  const defaultSeeds = ["Android Developer", "Flutter Developer", "Kotlin", "Java", "Firebase", "Jetpack Compose", "REST APIs", "MVVM", "Android SDK", "Payment Integration", "Security Auditing"];
+  defaultSeeds.forEach(r => roleSet.add(r));
+
+  experiences.forEach(exp => {
+    if (exp.roles) {
+      exp.roles.forEach(r => roleSet.add(r));
+    } else if (exp.role) {
+      exp.role.split(/[,,—&-]/).map(r => r.trim()).filter(Boolean).forEach(r => roleSet.add(r));
+    }
+  });
+
+  const allRoles = Array.from(roleSet);
+
+  container.innerHTML = allRoles.map(role => `
+    <span class="tag-chip exp-role-chip ${selectedRoles.includes(role) ? 'active' : ''}" data-role="${role}">
+      ${role}
+    </span>
+  `).join("");
 };

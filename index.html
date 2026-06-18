@@ -50,26 +50,8 @@
 
     <section id="experience">
       <h2>Experience</h2>
-      <ul class="exp-list">
-        <li>
-          <div class="exp-header"><strong>Comrade Tech Solutions</strong> <span class="exp-date">Jul 2023 –
-              Present</span></div>
-          <p>Android &amp; Flutter Developer — Enhancements, bug fixes, payment integrations and API security.</p>
-        </li>
-        <li>
-          <div class="exp-header"><strong>Sanda Group</strong> <span class="exp-date">Nov 2022 – Jun 2023</span></div>
-          <p>Java &amp; Android Developer</p>
-        </li>
-        <li>
-          <div class="exp-header"><strong>AARA Technologies Pvt Ltd</strong> <span class="exp-date">May 2022 – Nov
-              2022</span></div>
-          <p>Android Developer</p>
-        </li>
-        <li>
-          <div class="exp-header"><strong>PWS Information Technology</strong> <span class="exp-date">Jan 2021 – Apr
-              2022</span></div>
-          <p>Android Developer</p>
-        </li>
+      <ul class="exp-list" id="experienceList">
+        <!-- Rendered dynamically from Firestore -->
       </ul>
     </section>
 
@@ -77,7 +59,7 @@
 
   <footer>
     <p>© 2025 Mohit Singh — Android &amp; Flutter Developer</p>
-    <button id="adminBtn" class="admin-btn hidden">⚙ Manage Projects</button>
+    <button id="adminBtn" class="admin-btn hidden">⚙ Admin Panel</button>
   </footer>
 
   <!-- Admin Panel -->
@@ -104,51 +86,125 @@
         <p id="authError" class="error hidden"></p>
       </div>
       <div id="adminForm" class="hidden">
-        <h3 id="formTitle">Add New Project</h3>
-        <input type="hidden" id="f-edit-id" value="" />
-        <div class="form-grid">
-          <div class="fetch-row">
-            <input type="text" id="f-link" placeholder="Play Store URL — paste to auto-fetch" />
-            <button class="btn btn-fetch" id="playFetchBtn">🔍 Play</button>
-          </div>
-          <div class="fetch-row">
-            <input type="text" id="f-link-apple" placeholder="App Store URL — paste to auto-fetch" />
-            <button class="btn btn-fetch btn-apple" id="appleFetchBtn">🍎 Apple</button>
-          </div>
-          <div id="fetchStatus" class="hidden fetch-status"></div>
-          <input type="text" id="f-name" placeholder="Project Name *" />
-          <div class="img-row">
-            <input type="text" id="f-img" placeholder="Image URL or assets/app.png *" />
-            <label class="upload-btn" title="Upload image">
-              📁
-              <input type="file" id="f-img-upload" accept="image/*" style="display:none" />
-            </label>
-            <img id="f-img-preview" src="" alt="" class="img-preview hidden" />
-          </div>
-          <textarea id="f-desc" placeholder="Description *" rows="3"></textarea>
-          <input type="text" id="f-tags" placeholder="Tech tags (comma separated) e.g. Kotlin, Firebase" />
-          <div>
-            <h4>Manage Tags</h4>
-
-            <div id="tagList" class="tag-list"></div>
-
-            <div class="tag-add-row">
-              <input type="text" id="newTagInput" placeholder="Add new tag" />
-              <button id="addTagBtn">➕ Add</button>
-            </div>
-          </div>
-          <div class="store-check-row">
-            <label><input type="checkbox" id="f-has-play" checked /> Available on Play Store</label>
-            <label><input type="checkbox" id="f-has-apple" /> Available on App Store</label>
-          </div>
-          <input type="text" id="f-link-apple-store" placeholder="App Store URL (if available)" />
+        <div class="admin-tabs">
+          <button type="button" class="tab-btn active" id="tabProjectsBtn">Projects</button>
+          <button type="button" class="tab-btn" id="tabExperienceBtn">Experience</button>
         </div>
-        <button class="btn" id="submitBtn">➕ Add Project</button>
-        <button class="btn btn-cancel hidden" id="cancelEditBtn">✖ Cancel Edit</button>
-        <p id="formMsg" class="success hidden">Project added!</p>
-        <hr>
-        <h3>Existing Projects</h3>
-        <div id="adminProjectList"></div>
+
+        <!-- Projects Section -->
+        <div id="projectsSection">
+          <h3 id="formTitle">Add New Project</h3>
+          <input type="hidden" id="f-edit-id" value="" />
+          <div class="form-grid">
+            <div class="fetch-row">
+              <input type="text" id="f-link" placeholder="Play Store URL — paste to auto-fetch" />
+              <button class="btn btn-fetch" id="playFetchBtn">🔍 Play</button>
+            </div>
+            <div class="fetch-row">
+              <input type="text" id="f-link-apple" placeholder="App Store URL — paste to auto-fetch" />
+              <button class="btn btn-fetch btn-apple" id="appleFetchBtn">🍎 Apple</button>
+            </div>
+            <div id="fetchStatus" class="hidden fetch-status"></div>
+            <input type="text" id="f-name" placeholder="Project Name *" />
+            <div class="img-row">
+              <input type="text" id="f-img" placeholder="Image URL or assets/app.png *" />
+              <label class="upload-btn" title="Upload image">
+                📁
+                <input type="file" id="f-img-upload" accept="image/*" style="display:none" />
+              </label>
+              <img id="f-img-preview" src="" alt="" class="img-preview hidden" referrerpolicy="no-referrer" />
+            </div>
+            <textarea id="f-desc" placeholder="Description *" rows="3"></textarea>
+            <input type="text" id="f-tags" placeholder="Tech tags (comma separated) e.g. Kotlin, Firebase" />
+            <div>
+              <h4>Manage Tags</h4>
+
+              <div id="tagList" class="tag-list"></div>
+
+              <div class="tag-add-row">
+                <input type="text" id="newTagInput" placeholder="Add new tag" />
+                <button id="addTagBtn">➕ Add</button>
+              </div>
+            </div>
+            <div class="store-check-row">
+              <label><input type="checkbox" id="f-has-play" checked /> Available on Play Store</label>
+              <label><input type="checkbox" id="f-has-apple" /> Available on App Store</label>
+            </div>
+            <input type="text" id="f-link-apple-store" placeholder="App Store URL (if available)" />
+          </div>
+          <button class="btn" id="submitBtn">➕ Add Project</button>
+          <button class="btn btn-cancel hidden" id="cancelEditBtn">✖ Cancel Edit</button>
+          <p id="formMsg" class="success hidden">Project added!</p>
+          <hr>
+          <h3>Existing Projects</h3>
+          <div id="adminProjectList"></div>
+        </div>
+
+        <!-- Experience Section -->
+        <div id="experienceSection" class="hidden">
+          <h3 id="expFormTitle">Add New Experience</h3>
+          <input type="hidden" id="f-exp-edit-id" value="" />
+          <div class="form-grid">
+            <input type="text" id="f-exp-company" placeholder="Company Name *" />
+            <div class="duration-group"
+              style="display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--border); padding: 12px; border-radius: 8px; background: #fafafa; text-align: left;">
+              <label style="font-weight: 600; font-size: 13px; color: var(--text);">Duration *</label>
+
+              <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 4px;">
+                  <span style="font-size: 11px; color: var(--muted); font-weight: 500;">Start Month</span>
+                  <select id="f-exp-start-month"
+                    style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 13px;"></select>
+                </div>
+                <div style="flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 4px;">
+                  <span style="font-size: 11px; color: var(--muted); font-weight: 500;">Start Year</span>
+                  <select id="f-exp-start-year"
+                    style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 13px;"></select>
+                </div>
+              </div>
+
+              <div style="margin-top: 6px;">
+                <label
+                  style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text);">
+                  <input type="checkbox" id="f-exp-present" checked /> Currently working here (Present)
+                </label>
+              </div>
+
+              <div id="expEndDateRow"
+                style="display: none; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 4px;">
+                <div style="flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 4px;">
+                  <span style="font-size: 11px; color: var(--muted); font-weight: 500;">End Month</span>
+                  <select id="f-exp-end-month"
+                    style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 13px;"></select>
+                </div>
+                <div style="flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 4px;">
+                  <span style="font-size: 11px; color: var(--muted); font-weight: 500;">End Year</span>
+                  <select id="f-exp-end-year"
+                    style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 13px;"></select>
+                </div>
+              </div>
+            </div>
+            <input type="text" id="f-exp-role" placeholder="Roles / Skills (comma separated) e.g. Kotlin, Flutter" />
+            <div>
+              <h4 style="font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text);">Manage Roles/Skills
+              </h4>
+              <div id="expRoleList" class="tag-list"></div>
+              <div class="tag-add-row" style="display: flex; gap: 8px; margin-top: 8px;">
+                <input type="text" id="newExpRoleInput" placeholder="Add new role" style="flex: 1;" />
+                <button id="addExpRoleBtn" type="button" class="btn" style="padding: 6px 12px; font-size: 13px;">➕
+                  Add</button>
+              </div>
+            </div>
+            <textarea id="f-exp-desc" placeholder="Description / Responsibilities (optional)" rows="3"
+              style="margin-top: 10px;"></textarea>
+          </div>
+          <button class="btn" id="submitExpBtn">➕ Add Experience</button>
+          <button class="btn btn-cancel hidden" id="cancelExpEditBtn">✖ Cancel Edit</button>
+          <p id="expFormMsg" class="success hidden">Experience added!</p>
+          <hr>
+          <h3>Existing Experience</h3>
+          <div id="adminExperienceList"></div>
+        </div>
       </div>
     </div>
   </div>

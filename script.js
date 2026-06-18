@@ -410,18 +410,23 @@ async function fetchAppDetails(type) {
       const idMatch = link.match(/id=([a-zA-Z0-9._]+)/);
       if (!idMatch) throw new Error("Invalid Play Store URL");
       const bundleId = idMatch[1];
-      const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=https://play.google.com/store/apps/details?id=${bundleId}&hl=en`;
+      const playUrl = `https://play.google.com/store/apps/details?id=${bundleId}&hl=en`;
+      const proxyUrl = `proxy.php?url=${encodeURIComponent(playUrl)}`;
       const res = await fetch(proxyUrl);
-      const raw = await res.text();
+      if (!res.ok) throw new Error("Network response was not ok");
+      const json = await res.json();
+      const raw = json.contents;
       const html = raw.includes("&lt;") ? raw.replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&amp;/g,"&").replace(/&quot;/g,'"') : raw;
 
-      const nameMatch = html.match(/<title[^>]*>([^<]+)<\/title>/);
+      const nameMatch = html.match(/<title[^>]*>([\s\S]+?)<\/title>/i) || html.match(/itemprop="name"[^>]*>([\s\S]+?)<\//i);
       const appName = nameMatch ? nameMatch[1].replace(/ - Apps on Google Play/i, "").trim() : "";
-      const descMatch = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']{10,})["']/) ||
-                        html.match(/<meta[^>]+content=["']([^"']{10,})["'][^>]+name=["']description["']/);
+      
+      const descMatch = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']{10,})["']/i) ||
+                        html.match(/<meta[^>]+content=["']([^"']{10,})["'][^>]+name=["']description["']/i);
       const desc = descMatch ? descMatch[1].trim() : "";
-      const ogImgMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/) ||
-                         html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/);
+      
+      const ogImgMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
+                         html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
       let iconUrl = ogImgMatch ? ogImgMatch[1] : "";
       
       if (!iconUrl) {
@@ -546,13 +551,471 @@ document.getElementById("adminProjectList")?.addEventListener("click", (e) => {
   }
 });
 
+let dragSourceEl = null;
+
+function handleDragStart(e) {
+  const item = e.target.closest('.admin-project-item');
+  if (!item) return;
+  dragSourceEl = item;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/html', item.outerHTML);
+  item.style.opacity = '0.5';
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const item = e.target.closest('.admin-project-item');
+  if (item && item !== dragSourceEl) {
+    item.style.borderTop = "2px solid #007bff";
+  }
+  return false;
+}
+
+function handleDragLeave(e) {
+  const item = e.target.closest('.admin-project-item');
+  if (item) {
+    item.style.borderTop = "";
+  }
+}
+
+async function handleDrop(e) {
+  e.stopPropagation();
+  const targetItem = e.target.closest('.admin-project-item');
+  
+  document.querySelectorAll('.admin-project-item').forEach(el => {
+    el.style.opacity = '1';
+    el.style.borderTop = '';
+  });
+
+  if (dragSourceEl !== targetItem && targetItem) {
+    const list = document.getElementById("adminProjectList");
+    const allItems = [...list.querySelectorAll('.admin-project-item')];
+    const sourceIndex = allItems.indexOf(dragSourceEl);
+    const targetIndex = allItems.indexOf(targetItem);
+
+    if (sourceIndex < targetIndex) {
+      targetItem.after(dragSourceEl);
+    } else {
+      targetItem.before(dragSourceEl);
+    }
+
+    await saveNewOrder();
+  }
+  return false;
+}
+
+async function saveNewOrder() {
+  const list = document.getElementById("adminProjectList");
+  const allItems = [...list.querySelectorAll('.admin-project-item')];
+  
+  const msg = document.getElementById("formMsg");
+  if (msg) {
+    msg.textContent = "⏳ Saving new order...";
+    msg.classList.remove("hidden");
+  }
+
+  try {
+    const updates = allItems.map((item, index) => {
+      const id = item.dataset.id;
+      return window.updateProjectInFirestore(id, { order: index });
+    });
+    
+    await Promise.all(updates);
+    await window.renderProjects();
+    
+    if (msg) {
+      msg.textContent = "✅ Order updated successfully!";
+      setTimeout(() => msg.classList.add("hidden"), 3000);
+    }
+  } catch(e) {
+    console.error("Failed to save order:", e);
+    if(msg) msg.textContent = "❌ Failed to save order";
+  }
+}
 
 document.addEventListener("DOMContentLoaded", () => {
+  const adminList = document.getElementById("adminProjectList");
+  if (adminList) {
+    adminList.addEventListener('dragstart', handleDragStart);
+    adminList.addEventListener('dragover', handleDragOver);
+    adminList.addEventListener('dragleave', handleDragLeave);
+    adminList.addEventListener('drop', handleDrop);
+  }
+});
 
-   const existing = localStorage.getItem("projects");
+// ── EXPERIENCE DRAG-AND-DROP ──
+let dragExpSourceEl = null;
 
+function handleExpDragStart(e) {
+  const item = e.target.closest('.admin-experience-item');
+  if (!item) return;
+  dragExpSourceEl = item;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/html', item.outerHTML);
+  item.style.opacity = '0.5';
+}
 
+function handleExpDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const item = e.target.closest('.admin-experience-item');
+  if (item && item !== dragExpSourceEl) {
+    item.style.borderTop = "2px solid #007bff";
+  }
+  return false;
+}
 
+function handleExpDragLeave(e) {
+  const item = e.target.closest('.admin-experience-item');
+  if (item) {
+    item.style.borderTop = "";
+  }
+}
+
+async function handleExpDrop(e) {
+  e.stopPropagation();
+  const targetItem = e.target.closest('.admin-experience-item');
+  
+  document.querySelectorAll('.admin-experience-item').forEach(el => {
+    el.style.opacity = '1';
+    el.style.borderTop = '';
+  });
+
+  if (dragExpSourceEl !== targetItem && targetItem) {
+    const list = document.getElementById("adminExperienceList");
+    const allItems = [...list.querySelectorAll('.admin-experience-item')];
+    const sourceIndex = allItems.indexOf(dragExpSourceEl);
+    const targetIndex = allItems.indexOf(targetItem);
+
+    if (sourceIndex < targetIndex) {
+      targetItem.after(dragExpSourceEl);
+    } else {
+      targetItem.before(dragExpSourceEl);
+    }
+
+    await saveNewExperienceOrder();
+  }
+  return false;
+}
+
+async function saveNewExperienceOrder() {
+  const list = document.getElementById("adminExperienceList");
+  const allItems = [...list.querySelectorAll('.admin-experience-item')];
+  
+  const msg = document.getElementById("expFormMsg");
+  if (msg) {
+    msg.textContent = "⏳ Saving new order...";
+    msg.classList.remove("hidden");
+  }
+
+  try {
+    const updates = allItems.map((item, index) => {
+      const id = item.dataset.id;
+      return window.updateExperienceInFirestore(id, { order: index });
+    });
+    
+    await Promise.all(updates);
+    await window.renderExperiences();
+    
+    if (msg) {
+      msg.textContent = "✅ Order updated successfully!";
+      setTimeout(() => msg.classList.add("hidden"), 3000);
+    }
+  } catch(e) {
+    console.error("Failed to save experience order:", e);
+    if(msg) msg.textContent = "❌ Failed to save order";
+  }
+}
+
+// ── EXPERIENCE DURATION HELPERS ──
+function initDurationSelects() {
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const currentYear = new Date().getFullYear();
+  const startYearSelect = document.getElementById("f-exp-start-year");
+  const endYearSelect = document.getElementById("f-exp-end-year");
+  const startMonthSelect = document.getElementById("f-exp-start-month");
+  const endMonthSelect = document.getElementById("f-exp-end-month");
+
+  if (!startYearSelect || !endYearSelect || !startMonthSelect || !endMonthSelect) return;
+
+  const monthOptions = months.map(m => `<option value="${m}">${m}</option>`).join("");
+  startMonthSelect.innerHTML = monthOptions;
+  endMonthSelect.innerHTML = monthOptions;
+
+  let yearOptions = "";
+  for (let y = currentYear + 1; y >= 2010; y--) {
+    yearOptions += `<option value="${y}">${y}</option>`;
+  }
+  startYearSelect.innerHTML = yearOptions;
+  endYearSelect.innerHTML = yearOptions;
+
+  startMonthSelect.value = "Jan";
+  startYearSelect.value = String(currentYear);
+  endMonthSelect.value = "Jan";
+  endYearSelect.value = String(currentYear);
+
+  const presentCheckbox = document.getElementById("f-exp-present");
+  const endDateRow = document.getElementById("expEndDateRow");
+
+  if (presentCheckbox && endDateRow) {
+    const toggleEndDateVisibility = () => {
+      if (presentCheckbox.checked) {
+        endDateRow.style.display = "none";
+      } else {
+        endDateRow.style.display = "flex";
+      }
+    };
+    presentCheckbox.addEventListener("change", toggleEndDateVisibility);
+    toggleEndDateVisibility();
+  }
+}
+
+function getDurationString() {
+  const startMonth = document.getElementById("f-exp-start-month").value;
+  const startYear = document.getElementById("f-exp-start-year").value;
+  const isPresent = document.getElementById("f-exp-present").checked;
+
+  if (isPresent) {
+    return `${startMonth} ${startYear} – Present`;
+  } else {
+    const endMonth = document.getElementById("f-exp-end-month").value;
+    const endYear = document.getElementById("f-exp-end-year").value;
+    return `${startMonth} ${startYear} – ${endMonth} ${endYear}`;
+  }
+}
+
+function setDurationFields(durationStr) {
+  if (!durationStr) return;
+  const parts = durationStr.split(/[–-]/).map(p => p.trim());
+  if (parts.length < 2) return;
+
+  const startParts = parts[0].split(" ");
+  if (startParts.length >= 2) {
+    document.getElementById("f-exp-start-month").value = startParts[0];
+    document.getElementById("f-exp-start-year").value = startParts[1];
+  }
+
+  const isPresent = parts[1].toLowerCase() === "present";
+  document.getElementById("f-exp-present").checked = isPresent;
+
+  const endDateRow = document.getElementById("expEndDateRow");
+  if (isPresent) {
+    if (endDateRow) endDateRow.style.display = "none";
+  } else {
+    if (endDateRow) endDateRow.style.display = "flex";
+    const endParts = parts[1].split(" ");
+    if (endParts.length >= 2) {
+      document.getElementById("f-exp-end-month").value = endParts[0];
+      document.getElementById("f-exp-end-year").value = endParts[1];
+    }
+  }
+}
+
+// ── ADMIN TABS ──
+function initTabs() {
+  const tabProjectsBtn = document.getElementById("tabProjectsBtn");
+  const tabExperienceBtn = document.getElementById("tabExperienceBtn");
+  const projectsSection = document.getElementById("projectsSection");
+  const experienceSection = document.getElementById("experienceSection");
+
+  if (tabProjectsBtn && tabExperienceBtn && projectsSection && experienceSection) {
+    tabProjectsBtn.addEventListener("click", () => {
+      tabProjectsBtn.classList.add("active");
+      tabExperienceBtn.classList.remove("active");
+      projectsSection.classList.remove("hidden");
+      experienceSection.classList.add("hidden");
+    });
+
+    tabExperienceBtn.addEventListener("click", () => {
+      tabExperienceBtn.classList.add("active");
+      tabProjectsBtn.classList.remove("active");
+      experienceSection.classList.remove("hidden");
+      projectsSection.classList.add("hidden");
+    });
+  }
+}
+
+// ── EXPERIENCE CRUD ACTIONS ──
+async function addExperience() {
+  const company = document.getElementById("f-exp-company").value.trim();
+  const duration = getDurationString();
+  const roleInput = document.getElementById("f-exp-role").value.trim();
+
+  if (!company || !duration) {
+    alert("Company Name aur Duration required hai.");
+    return;
+  }
+
+  const roles = roleInput ? roleInput.split(",").map(r => r.trim()).filter(Boolean) : [];
+  const desc = document.getElementById("f-exp-desc").value.trim();
+
+  await window.addExperienceToFirestore({
+    company,
+    duration,
+    role: roleInput,
+    roles,
+    desc,
+    createdAt: Date.now()
+  });
+
+  await window.renderExperiences();
+  await window.renderAdminExperienceList();
+  cancelExpEdit();
+
+  const msg = document.getElementById("expFormMsg");
+  if (msg) {
+    msg.textContent = "✅ Experience added successfully!";
+    msg.classList.remove("hidden");
+    setTimeout(() => msg.classList.add("hidden"), 3000);
+  }
+}
+
+async function editExperience(id) {
+  try {
+    console.log("✏️ Edit Experience called with id:", id);
+    const experiences = await window.getExperiencesFromFirestore();
+    const exp = experiences.find(item => String(item.id) === String(id));
+    if (!exp) {
+      console.error("Experience not found:", id);
+      return;
+    }
+
+    document.getElementById("f-exp-edit-id").value = id;
+    document.getElementById("f-exp-company").value = exp.company || "";
+    setDurationFields(exp.duration || "");
+    document.getElementById("f-exp-desc").value = exp.desc || "";
+
+    let selectedRoles = [];
+    if (exp.roles && exp.roles.length > 0) {
+      selectedRoles = exp.roles;
+    } else if (exp.role) {
+      selectedRoles = exp.role.split(/[,,—&-]/).map(r => r.trim()).filter(Boolean);
+    }
+    
+    document.getElementById("f-exp-role").value = selectedRoles.join(", ");
+    if (window.renderExpRoleManager) {
+      await window.renderExpRoleManager(selectedRoles);
+    }
+
+    document.getElementById("expFormTitle").textContent = "✏️ Edit Experience";
+    document.getElementById("submitExpBtn").textContent = "💾 Save Changes";
+    document.getElementById("cancelExpEditBtn").classList.remove("hidden");
+
+    document.getElementById("expFormTitle").scrollIntoView({ behavior: "smooth" });
+  } catch (error) {
+    console.error("Error in editExperience:", error);
+  }
+}
+
+function cancelExpEdit() {
+  document.getElementById("f-exp-edit-id").value = "";
+  document.getElementById("expFormTitle").textContent = "Add New Experience";
+  document.getElementById("submitExpBtn").textContent = "➕ Add Experience";
+  document.getElementById("cancelExpEditBtn").classList.add("hidden");
+  document.getElementById("f-exp-company").value = "";
+  document.getElementById("f-exp-role").value = "";
+  document.getElementById("f-exp-desc").value = "";
+  
+  const currentYear = new Date().getFullYear();
+  document.getElementById("f-exp-start-month").value = "Jan";
+  document.getElementById("f-exp-start-year").value = String(currentYear);
+  document.getElementById("f-exp-present").checked = true;
+  const endDateRow = document.getElementById("expEndDateRow");
+  if (endDateRow) endDateRow.style.display = "none";
+  document.getElementById("f-exp-end-month").value = "Jan";
+  document.getElementById("f-exp-end-year").value = String(currentYear);
+
+  if (window.renderExpRoleManager) {
+    window.renderExpRoleManager([]);
+  }
+}
+
+async function updateExperience(id) {
+  const company = document.getElementById("f-exp-company").value.trim();
+  const duration = getDurationString();
+  const roleInput = document.getElementById("f-exp-role").value.trim();
+
+  if (!company || !duration) {
+    alert("Company Name aur Duration required hai.");
+    return;
+  }
+
+  const roles = roleInput ? roleInput.split(",").map(r => r.trim()).filter(Boolean) : [];
+  const desc = document.getElementById("f-exp-desc").value.trim();
+
+  try {
+    await window.updateExperienceInFirestore(String(id), { company, duration, role: roleInput, roles, desc });
+    await window.renderExperiences();
+    await window.renderAdminExperienceList();
+    cancelExpEdit();
+
+    const msg = document.getElementById("expFormMsg");
+    if (msg) {
+      msg.textContent = "✅ Experience updated successfully!";
+      msg.classList.remove("hidden");
+      setTimeout(() => msg.classList.add("hidden"), 3000);
+    }
+  } catch (error) {
+    console.error("Update Experience error:", error);
+    alert("Update failed: " + error.message);
+  }
+}
+
+function saveExperience() {
+  const editId = document.getElementById("f-exp-edit-id").value;
+  if (editId) {
+    updateExperience(editId);
+  } else {
+    addExperience();
+  }
+}
+
+async function deleteExperience(id) {
+  if (!confirm("Are you sure you want to delete this experience?")) return;
+  await window.deleteExperienceFromFirestore(id);
+  await window.renderExperiences();
+  await window.renderAdminExperienceList();
+}
+async function toggleExpRole(role) {
+  const input = document.getElementById("f-exp-role");
+  if (!input) return;
+
+  let current = input.value ? input.value.split(",").map(r => r.trim()).filter(Boolean) : [];
+
+  if (current.includes(role)) {
+    current = current.filter(r => r !== role);
+  } else {
+    current.push(role);
+  }
+
+  input.value = current.join(", ");
+  if (window.renderExpRoleManager) {
+    await window.renderExpRoleManager(current);
+  }
+}
+
+async function addNewExpRole() {
+  const input = document.getElementById("newExpRoleInput");
+  const newRole = input.value.trim();
+  if (!newRole) return;
+
+  const currentSelected = document.getElementById("f-exp-role").value
+    ? document.getElementById("f-exp-role").value.split(",").map(r => r.trim()).filter(Boolean)
+    : [];
+
+  if (!currentSelected.includes(newRole)) {
+    currentSelected.push(newRole);
+  }
+
+  document.getElementById("f-exp-role").value = currentSelected.join(", ");
+  input.value = "";
+
+  if (window.renderExpRoleManager) {
+    await window.renderExpRoleManager(currentSelected);
+  }
+}
+document.addEventListener("DOMContentLoaded", () => {
   // Admin button
   document.getElementById("adminBtn")?.addEventListener("click", toggleAdminPanel);
 
@@ -567,22 +1030,65 @@ document.addEventListener("DOMContentLoaded", () => {
   // Cancel edit
   document.getElementById("cancelEditBtn")?.addEventListener("click", cancelEdit);
 
-   const fileInput = document.getElementById("f-img-upload");
+  const fileInput = document.getElementById("f-img-upload");
   if (fileInput) {
     fileInput.removeAttribute("onchange");
     fileInput.addEventListener("change", handleImgUpload);
   }
 
+  // Initialize tabs
+  initTabs();
+
+  // Initialize duration dropdowns
+  initDurationSelects();
+
+  // Experience cancel edit
+  document.getElementById("cancelExpEditBtn")?.addEventListener("click", cancelExpEdit);
+
+  // Experience click handler for Edit / Delete delegation
+  document.getElementById("adminExperienceList")?.addEventListener("click", (e) => {
+    const editBtn = e.target.closest(".exp-edit-btn");
+    const deleteBtn = e.target.closest(".exp-delete-btn");
+
+    if (editBtn) {
+      editExperience(editBtn.dataset.id);
+    }
+
+    if (deleteBtn) {
+      deleteExperience(deleteBtn.dataset.id);
+    }
+  });
+
+  // Experience drag-and-drop
+  const expAdminList = document.getElementById("adminExperienceList");
+  if (expAdminList) {
+    expAdminList.addEventListener('dragstart', handleExpDragStart);
+    expAdminList.addEventListener('dragover', handleExpDragOver);
+    expAdminList.addEventListener('dragleave', handleExpDragLeave);
+    expAdminList.addEventListener('drop', handleExpDrop);
+  }
+
+  // Experience roles tag list click delegation
+  document.getElementById("expRoleList")?.addEventListener("click", (e) => {
+    const roleChip = e.target.closest(".exp-role-chip");
+    if (roleChip) {
+      const role = roleChip.dataset.role;
+      if (role) toggleExpRole(role);
+    }
+  });
 });
 
-
 document.getElementById("addTagBtn")?.addEventListener("click", addNewTag);
+
+document.getElementById("addExpRoleBtn")?.addEventListener("click", addNewExpRole);
 
 document.getElementById("playFetchBtn")?.addEventListener("click", () => {
   fetchAppDetails("play");
 });
 
 document.getElementById("submitBtn")?.addEventListener("click", saveProject);
+
+document.getElementById("submitExpBtn")?.addEventListener("click", saveExperience);
 
 document.getElementById("closeAdminBtn")?.addEventListener("click", closeAdmin);
 
@@ -593,7 +1099,6 @@ document.getElementById("tagList")?.addEventListener("click", (e) => {
     if (tag) toggleTag(tag);
   }
 });
-
 
 // Make functions global for inline event handlers and cross-module access
 window.handleImgUpload = handleImgUpload;
@@ -606,3 +1111,19 @@ window.editProject = editProject;
 window.deleteProject = deleteProject;
 window.fetchAppDetails = fetchAppDetails;
 window.closeAdmin = closeAdmin;
+
+window.handleExpDragStart = handleExpDragStart;
+window.handleExpDragOver = handleExpDragOver;
+window.handleExpDragLeave = handleExpDragLeave;
+window.handleExpDrop = handleExpDrop;
+window.saveNewExperienceOrder = saveNewExperienceOrder;
+window.initTabs = initTabs;
+window.initDurationSelects = initDurationSelects;
+window.addExperience = addExperience;
+window.editExperience = editExperience;
+window.cancelExpEdit = cancelExpEdit;
+window.updateExperience = updateExperience;
+window.saveExperience = saveExperience;
+window.deleteExperience = deleteExperience;
+window.toggleExpRole = toggleExpRole;
+window.addNewExpRole = addNewExpRole;
