@@ -171,7 +171,7 @@ window.toggleAdminPanel = function () {
    // ✅ Agar user logged in nahi hai, to sirf login form dikhao
   if (!user) {
     overlay.classList.add("show");
-    authBox.style.display = "block";
+    authBox.style.display = "flex";
     formBox.style.display = "none";
     authBox.classList.remove("hidden");
     formBox.classList.add("hidden");

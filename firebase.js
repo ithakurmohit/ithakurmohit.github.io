@@ -124,7 +124,7 @@ onAuthStateChanged(auth, async (user) => {
   } else {
     formBox.classList.add("hidden");
     authBox.classList.remove("hidden");
-    authBox.style.display = "block";
+    authBox.style.display = "flex";
     formBox.style.display = "none";   // 🔥 IMPORTANT
   }
 });
